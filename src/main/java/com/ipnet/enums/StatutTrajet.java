@@ -1,6 +1,6 @@
 package com.ipnet.enums;
 
-public enum StatutTransport {
+public enum StatutTrajet {
     PROGRAMME,
     EN_COURS,
     TERMINE,
