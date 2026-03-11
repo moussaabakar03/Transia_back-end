@@ -1,18 +1,13 @@
 package com.ipnet.mappers;
 
+import org.springframework.stereotype.Component;
+
 import com.ipnet.dto.VehiculeDto;
 import com.ipnet.entity.VehiculeEntity;
 import com.ipnet.enums.StatutVehicule;
 
+@Component
 public class VehiculeMappers {
-
-	private VehiculeEntity vehiculeEntity;
-	private VehiculeDto vehiculeDto;
-	
-	public VehiculeMappers(VehiculeEntity vehiculeEntity, VehiculeDto vehiculeDto) {
-		this.vehiculeDto = vehiculeDto;
-		this.vehiculeEntity = vehiculeEntity;
-	}
 	
 	public VehiculeEntity toEntity(VehiculeDto vehiculeDto) {
 		VehiculeEntity vehiculeEntity = new VehiculeEntity();
