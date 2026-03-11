@@ -3,8 +3,8 @@ package com.ipnet.security.enums;
 public enum UserRole {
 
     ADMIN,
-    USER,
+    AGENT_COMMERCIAL,
     CLIENT,
     AGENT,
-    AUDITEUR
+    CHAUFFEUR
 }

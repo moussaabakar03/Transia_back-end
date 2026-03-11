@@ -1,12 +1,13 @@
-/*
+/*package com.ipnet.security;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import tg.FinanceApp.spring.security.model.Role;
-import tg.FinanceApp.spring.security.model.User;
-import tg.FinanceApp.spring.security.enums.*;
-import tg.FinanceApp.spring.security.repository.RoleRepository;
-import tg.FinanceApp.spring.security.repository.UserRepository;
+import com.ipnet.security.model.Role;
+import com.ipnet.security.model.User;
+import com.ipnet.security.enums.*;
+import com.ipnet.security.repository.RoleRepository;
+import com.ipnet.security.repository.UserRepository;
 
 import java.util.Optional;
 import java.util.UUID;
