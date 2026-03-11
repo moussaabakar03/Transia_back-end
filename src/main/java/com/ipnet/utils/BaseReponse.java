@@ -1,4 +1,4 @@
-package utils;
+package com.ipnet.utils;
 
 public class BaseReponse<T> {
 
