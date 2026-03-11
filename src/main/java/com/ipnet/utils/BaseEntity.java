@@ -17,19 +17,18 @@ import jakarta.persistence.MappedSuperclass;
 public class BaseEntity implements Serializable{
 
 	@CreatedBy
-	@Column(updatable = false, nullable = false)
+	//@Column(updatable = false)
 	private String creerPar;
 	
 	@LastModifiedBy
-	@Column(nullable = false)
+	//@Column(name="modifier_par")
 	private String modiferPar;
 
 	@CreatedDate
-	@Column(updatable = false, nullable = false)
+	//@Column(updatable = false)
 	private String dateCreation;
 
 	@LastModifiedDate
-	@Column(nullable = false)
 	private String dateModification;
 
 	public String getCreerPar() {
