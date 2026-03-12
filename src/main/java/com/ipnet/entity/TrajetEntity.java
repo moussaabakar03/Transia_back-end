@@ -2,9 +2,20 @@ package com.ipnet.entity;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+
 import com.ipnet.enums.StatutTrajet;
 import com.ipnet.utils.BaseEntity;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name="Trajet")
@@ -43,14 +54,19 @@ public class TrajetEntity extends BaseEntity {
     @JoinColumn(name = "vehicule_id")
     private VehiculeEntity vehicule;
 
+    // Ajout indispensable pour le mappedBy de VilleEntity
+    @ManyToOne
+    @JoinColumn(name = "ville_id") 
+    private VilleEntity ville;
+
     // Constructeur vide
     public TrajetEntity() {
     }
 
-    // Constructeur avec arguments
+    // Constructeur avec arguments mis à jour
     public TrajetEntity(Long id, String villeDepart, String villeArrivee, Double distance, 
                         String dureeEstimee, Double tarif, LocalDate dateDepart, 
-                        LocalTime heureDepart, StatutTrajet statut, VehiculeEntity vehicule) {
+                        LocalTime heureDepart, StatutTrajet statut, VehiculeEntity vehicule, VilleEntity ville) {
         super();
         this.id = id;
         this.villeDepart = villeDepart;
@@ -62,6 +78,7 @@ public class TrajetEntity extends BaseEntity {
         this.heureDepart = heureDepart;
         this.statut = statut;
         this.vehicule = vehicule;
+        this.ville = ville;
     }
 
     // Getters et Setters
@@ -143,5 +160,13 @@ public class TrajetEntity extends BaseEntity {
 
     public void setVehicule(VehiculeEntity vehicule) {
         this.vehicule = vehicule;
+    }
+
+    public VilleEntity getVille() {
+        return ville;
+    }
+
+    public void setVille(VilleEntity ville) {
+        this.ville = ville;
     }
 }
