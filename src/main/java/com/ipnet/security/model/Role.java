@@ -30,7 +30,7 @@ public class Role extends BaseEntity implements Serializable {
     private UUID publicId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 50)
     private UserRole name;
 
     public Role() {
