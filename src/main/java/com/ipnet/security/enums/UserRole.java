@@ -5,6 +5,5 @@ public enum UserRole {
     ADMIN,
     AGENT_COMMERCIAL,
     CLIENT,
-    AGENT,
     CHAUFFEUR
 }

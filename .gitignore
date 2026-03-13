@@ -33,3 +33,5 @@ build/
 .vscode/
 
 
+### Configuration Locale Personnelle ###
+src/main/resources/application-local.properties

@@ -21,10 +21,10 @@ import org.springframework.web.ErrorResponse;
 @OpenAPIDefinition(
         info = @Info(
                 contact = @Contact(
-                        name = "ALI MOUSSA",
-                        email = "alimoussaabakar003@gmail.com"
+                        name = "TransIA",
+                        email = "transia@gmail.com"
                 ),
-                title = "MEF-RH",
+                title = "Back-end TransIA",
                 description = "",
                 version = "1.0",
                 license = @License(
