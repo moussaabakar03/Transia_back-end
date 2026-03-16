@@ -54,16 +54,16 @@ public class TrajetEntity extends BaseEntity {
     @JoinColumn(name = "vehicule_id")
     private VehiculeEntity vehicule;
 
-    // Ajout indispensable pour le mappedBy de VilleEntity
+
     @ManyToOne
     @JoinColumn(name = "ville_id") 
     private VilleEntity ville;
 
-    // Constructeur vide
+
     public TrajetEntity() {
     }
 
-    // Constructeur avec arguments mis à jour
+
     public TrajetEntity(Long id, String villeDepart, String villeArrivee, Double distance, 
                         String dureeEstimee, Double tarif, LocalDate dateDepart, 
                         LocalTime heureDepart, StatutTrajet statut, VehiculeEntity vehicule, VilleEntity ville) {
@@ -81,7 +81,8 @@ public class TrajetEntity extends BaseEntity {
         this.ville = ville;
     }
 
-    // Getters et Setters
+
+    
     public Long getId() {
         return id;
     }

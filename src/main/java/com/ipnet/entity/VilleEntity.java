@@ -40,7 +40,7 @@ public class VilleEntity extends BaseEntity {
         this.region = region;
     }
 
-    // Getters et Setters
+    
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
