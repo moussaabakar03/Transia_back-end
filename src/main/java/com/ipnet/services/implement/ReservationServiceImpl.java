@@ -22,13 +22,24 @@ import com.ipnet.services.interfaces.ReservationServiceInterface;
 @Service
 public class ReservationServiceImpl implements ReservationServiceInterface {
 
-    @Autowired private ReservationRepository reservationRepository;
-    @Autowired private BilletRepository billetRepository;
-    @Autowired private UserRepository userRepository;
-    @Autowired private TrajetRepository trajetRepository;
-    @Autowired private ReservationMapper reservationMapper;
+    private ReservationRepository reservationRepository;
+    private BilletRepository billetRepository;
+    private UserRepository userRepository;
+    private TrajetRepository trajetRepository;
+    private ReservationMapper reservationMapper;
 
-    @Transactional
+    
+    public ReservationServiceImpl(ReservationRepository reservationRepository, BilletRepository billetRepository,
+			UserRepository userRepository, TrajetRepository trajetRepository, ReservationMapper reservationMapper) {
+		super();
+		this.reservationRepository = reservationRepository;
+		this.billetRepository = billetRepository;
+		this.userRepository = userRepository;
+		this.trajetRepository = trajetRepository;
+		this.reservationMapper = reservationMapper;
+	}
+
+	@Transactional
     public ReservationResponseDto create(ReservationRequestDto dto) {
         User user = userRepository.findById(dto.getUserId())
             .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
@@ -42,7 +53,8 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
         res.setStatut(StatutReservation.EN_ATTENTE);
         res.setUser(user);
         res.setTrajet(trajet);
-
+        res.setNomResponsable(dto.getNomResponsable());
+        
         Reservation savedRes = reservationRepository.save(res);
 
         List<BilletEntity> billets = new ArrayList<>();

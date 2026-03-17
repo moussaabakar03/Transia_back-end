@@ -10,7 +10,7 @@ import com.ipnet.entity.Reservation;
 public class ReservationMapper {
 
     @Autowired
-    private BilletMapper billetMapper; // Il faudra aussi créer ce petit mapper
+    private BilletMapper billetMapper; 
 
     public ReservationResponseDto toDto(Reservation entity) {
         ReservationResponseDto dto = new ReservationResponseDto();
