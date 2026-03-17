@@ -12,7 +12,6 @@ public class BilletDto {
 
     public BilletDto() {}
 
-    // Getters et Setters...
 	public Long getId() {
 		return id;
 	}

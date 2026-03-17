@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.ipnet.enums.StatutReservation;
+import com.ipnet.enums.TypeReservation;
 import com.ipnet.security.model.User;
 
 import jakarta.persistence.CascadeType;
@@ -27,14 +28,15 @@ public class Reservation {
     private LocalDateTime dateReservation;
     private LocalDateTime expiration; // Date de resa + 36h
     private int nombrePlace;
+    private String nomResponsable;
 
     @Enumerated(EnumType.STRING)
     private StatutReservation statut;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
-
+    
     @ManyToOne
     @JoinColumn(name = "trajet_id")
     private TrajetEntity trajet;
@@ -45,10 +47,11 @@ public class Reservation {
     private PaiementEntity paiement;
 
 
-    // Une réservation peut générer plusieurs billets (selon nombrePlace)
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL)
     private List<BilletEntity> billets;
     
+    @Enumerated(EnumType.STRING)
+    private TypeReservation typeReservation;
     
 
 	public Long getId() {
@@ -140,6 +143,27 @@ public class Reservation {
 		this.billets = billets;
 	}
 
+
+	public String getNomResponsable() {
+		return nomResponsable;
+	}
+
+
+	public void setNomResponsable(String nomResponsable) {
+		this.nomResponsable = nomResponsable;
+	}
+
+
+	public TypeReservation getTypeReservation() {
+		return typeReservation;
+	}
+
+
+	public void setTypeReservation(TypeReservation typeReservation) {
+		this.typeReservation = typeReservation;
+	}
+
+	
     
     
 }
