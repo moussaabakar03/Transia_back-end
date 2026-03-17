@@ -1,10 +1,11 @@
 package com.ipnet.services.interfaces;
 
-import com.ipnet.dto.FeedbackRequestDto;
-import com.ipnet.dto.FeedbackResponseDto;
 import java.util.List;
+import com.ipnet.dto.FeedbackDto;
 
 public interface FeedbackServiceInterface {
-    FeedbackResponseDto create(FeedbackRequestDto dto);
-    List<FeedbackResponseDto> getByTrajet(Long trajetId);
+    List<FeedbackDto> getAllFeedbacks();
+    void saveFeedback(FeedbackDto dto);
+
+    
 }

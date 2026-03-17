@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/trajet")
-@CrossOrigin("*") // Pour permettre les appels depuis Flutter
+@CrossOrigin("*") 
 public class TrajetController {
 
     @Autowired
@@ -27,13 +27,13 @@ public class TrajetController {
     @Autowired
     private VehiculeRepository vehiculeRepository;
 
-    // Récupérer tous les trajets
+
     @GetMapping
     public List<TrajetEntity> getAllTrajets() {
         return trajetRepository.findAll();
     }
 
-    // Récupérer un trajet par ID
+
     @GetMapping("/{id}")
     public ResponseEntity<TrajetEntity> getTrajetById(@PathVariable Long id) {
         return trajetRepository.findById(id)
@@ -41,13 +41,13 @@ public class TrajetController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Créer un nouveau trajet avec relations
+
     @PostMapping
     public ResponseEntity<?> createTrajet(@RequestBody TrajetRequestDto request) {
         try {
             TrajetEntity trajet = new TrajetEntity();
 
-            // Chargement des relations depuis la base de données
+            
             VilleEntity depart = villeRepository.findById(request.getVilleDepartId())
                     .orElseThrow(() -> new RuntimeException("Ville de départ introuvable"));
             
@@ -57,7 +57,7 @@ public class TrajetController {
             VehiculeEntity vehicule = vehiculeRepository.findById(request.getVehiculeId())
                     .orElseThrow(() -> new RuntimeException("Véhicule introuvable"));
 
-            // Mapping des données
+                    
             trajet.setVilleDepart(depart);
             trajet.setVilleArrivee(arrivee);
             trajet.setVehicule(vehicule);
@@ -76,7 +76,7 @@ public class TrajetController {
         }
     }
 
-    // Mettre à jour un trajet
+    
     @PutMapping("/{id}")
     public ResponseEntity<?> updateTrajet(@PathVariable Long id, @RequestBody TrajetRequestDto request) {
         return trajetRepository.findById(id).map(trajet -> {
@@ -87,13 +87,13 @@ public class TrajetController {
             trajet.setVilleArrivee(arrivee);
             trajet.setTarif(request.getTarif());
             trajet.setStatut(request.getStatut());
-            // ... mettre à jour les autres champs nécessaires
+            
             
             return ResponseEntity.ok(trajetRepository.save(trajet));
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // Supprimer un trajet
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteTrajet(@PathVariable Long id) {
         return trajetRepository.findById(id).map(trajet -> {
