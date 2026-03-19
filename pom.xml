@@ -55,6 +55,14 @@
             <artifactId>spring-boot-starter-data-rest</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
+            <scope>provided</scope>
+        </dependency>
+
+
         <!-- ===== SPRING SECURITY ===== -->
         <dependency>
 		    <groupId>org.springframework.boot</groupId>
