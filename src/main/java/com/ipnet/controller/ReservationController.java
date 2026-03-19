@@ -1,5 +1,7 @@
 package com.ipnet.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,4 +28,15 @@ public class ReservationController {
     public ResponseEntity<ReservationResponseDto> getById(@PathVariable Long id) {
         return ResponseEntity.ok(reservationService.getById(id));
     }
+    
+    @GetMapping("/trajet/{trajetId}")
+    public Integer nombrePlaceTrajet(@PathVariable Long trajetId) {
+    	return reservationService.nombrePlaceTrajet(trajetId);
+    }
+    
+    
+    @GetMapping
+	public List<ReservationResponseDto> listeVehicule() {
+		return reservationService.listeReservations();
+	}
 }
