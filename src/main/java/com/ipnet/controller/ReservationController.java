@@ -39,4 +39,11 @@ public class ReservationController {
 	public List<ReservationResponseDto> listeVehicule() {
 		return reservationService.listeReservations();
 	}
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<ReservationResponseDto> modifier(
+            @PathVariable Long id, 
+            @RequestBody ReservationRequestDto dto) { 
+        return ResponseEntity.ok(reservationService.modifierReservation(id, dto));
+    }
 }
