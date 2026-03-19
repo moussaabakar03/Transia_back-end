@@ -1,4 +1,4 @@
-/*package com.ipnet.security;
+package com.ipnet.security;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,7 +41,7 @@ public class AdminUserInitializer implements CommandLineRunner {
                 });
 
      
-        if (userRepository.existsByUsername("ALI")) {
+        if (userRepository.existsByUsername("ATTA")) {
             System.out.println(">>> Admin déjà existant, aucune action.");
             return;
         }
@@ -49,16 +49,16 @@ public class AdminUserInitializer implements CommandLineRunner {
     
         User admin = new User();
         admin.setNom("Administrateur");
-        admin.setUsername("ALI");
-        admin.setPassword(passwordEncoder.encode("Moussa"));
+        admin.setUsername("ATTA");
+        admin.setPassword(passwordEncoder.encode("Esso"));
         admin.setRole(adminRole);
         admin.setEnable(true);
         admin.setPublicId(UUID.randomUUID());
 
         userRepository.save(admin);
 
-        System.out.println(">>> Admin créé avec succès (username: Ali / password: Moussa)");
+        System.out.println(">>> Admin créé avec succès (username: ATTA / password: Esso)");
     }
 }
-*/
+
 

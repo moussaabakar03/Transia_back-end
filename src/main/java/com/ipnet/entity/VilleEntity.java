@@ -1,17 +1,9 @@
 package com.ipnet.entity;
 
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ipnet.utils.BaseEntity;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name="Ville")
@@ -24,21 +16,20 @@ public class VilleEntity extends BaseEntity {
     @Column(name="NomVille", nullable=false, length=150)
     private String nomVille;
 
-    @Column(name="Region", nullable=true, length=150)
+    @Column(name="Region", length=100)
     private String region;
 
-    @OneToMany(mappedBy = "ville", fetch = FetchType.LAZY)
-    private List<TrajetEntity> trajets;
+    // Liste des trajets au départ de cette ville
+    @OneToMany(mappedBy = "villeDepart", cascade = CascadeType.ALL)
+    @JsonIgnore // Important pour éviter les boucles infinies en JSON
+    private List<TrajetEntity> trajetsDepart;
 
-    public VilleEntity() {
-    }
+    // Liste des trajets arrivant dans cette ville
+    @OneToMany(mappedBy = "villeArrivee", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<TrajetEntity> trajetsArrivee;
 
-    public VilleEntity(Long id, String nomVille, String region) {
-        super();
-        this.id = id;
-        this.nomVille = nomVille;
-        this.region = region;
-    }
+    public VilleEntity() {}
 
     // Getters et Setters
     public Long getId() { return id; }
@@ -50,6 +41,9 @@ public class VilleEntity extends BaseEntity {
     public String getRegion() { return region; }
     public void setRegion(String region) { this.region = region; }
 
-    public List<TrajetEntity> getTrajets() { return trajets; }
-    public void setTrajets(List<TrajetEntity> trajets) { this.trajets = trajets; }
+    public List<TrajetEntity> getTrajetsDepart() { return trajetsDepart; }
+    public void setTrajetsDepart(List<TrajetEntity> trajetsDepart) { this.trajetsDepart = trajetsDepart; }
+
+    public List<TrajetEntity> getTrajetsArrivee() { return trajetsArrivee; }
+    public void setTrajetsArrivee(List<TrajetEntity> trajetsArrivee) { this.trajetsArrivee = trajetsArrivee; }
 }
