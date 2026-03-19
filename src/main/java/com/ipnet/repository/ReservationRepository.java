@@ -3,11 +3,14 @@ package com.ipnet.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
+import org.springframework.stereotype.Repository;
 import com.ipnet.entity.Reservation;
 
+@Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-	@Query("SELECT SUM(r.nombrePlace) FROM Reservation r WHERE r.trajet.id = :trajetId")
-    Integer sumPlacesReserveesByTrajetId(@Param("trajetId") Long trajetId);
+    @Query("SELECT SUM(r.nombrePlace) FROM Reservation r " +
+           "WHERE r.trajet.id = :trajetId " +
+           "AND r.statut IN (com.ipnet.enums.StatutReservation.EN_ATTENTE, com.ipnet.enums.StatutReservation.CONFIRMEE)")
+    Integer sumPlacesOccupéesByTrajetId(@Param("trajetId") Long trajetId);
 }

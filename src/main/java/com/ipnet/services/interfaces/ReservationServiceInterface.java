@@ -10,4 +10,6 @@ public interface ReservationServiceInterface {
     ReservationResponseDto getById(Long id);
 	Integer nombrePlaceTrajet(Long trajetId);
 	List<ReservationResponseDto> listeReservations();
+	void annulerReservation(Long id);
+	ReservationResponseDto modifierReservation(Long id, ReservationRequestDto dto);
 }
