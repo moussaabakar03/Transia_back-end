@@ -1,25 +1,77 @@
 package com.ipnet.entity;
 
-import com.ipnet.enums.StatutPaiement;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import com.ipnet.entity.Reservation;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+import com.ipnet.enums.ModePaiement;
 
 @Entity
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class PaiementEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private String reference; // Ex: "REC-2026-001"
     private Double montant;
-    private String methode; // Mobile Money, Espèces
-    private StatutPaiement statut;
+    private LocalDateTime datePaiement;
+
+    @Enumerated(EnumType.STRING)
+    private ModePaiement modePaiement; // ESPECES, TMONEY, FLOOZ
 
     @OneToOne
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getReference() {
+		return reference;
+	}
+
+	public void setReference(String reference) {
+		this.reference = reference;
+	}
+
+	public Double getMontant() {
+		return montant;
+	}
+
+	public void setMontant(Double montant) {
+		this.montant = montant;
+	}
+
+	public LocalDateTime getDatePaiement() {
+		return datePaiement;
+	}
+
+	public void setDatePaiement(LocalDateTime datePaiement) {
+		this.datePaiement = datePaiement;
+	}
+
+	public ModePaiement getModePaiement() {
+		return modePaiement;
+	}
+
+	public void setModePaiement(ModePaiement modePaiement) {
+		this.modePaiement = modePaiement;
+	}
+
+	public Reservation getReservation() {
+		return reservation;
+	}
+
+	public void setReservation(Reservation reservation) {
+		this.reservation = reservation;
+	}
+    
+    
 }

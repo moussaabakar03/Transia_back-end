@@ -86,11 +86,11 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
 
             billet.setNomPassager(nomPassager);
 
-            billet.setStatut(StatutBillet.VALIDE);
+            billet.setStatut(StatutBillet.EN_ATTENTE);
 
 
             String infoQr = String.format("ID:%s|NOM:%s|TRAJET:%s|DATE:%s|STATUT:%s",
-                UUID.randomUUID().toString().substring(0, 8), // Un ID court
+                UUID.randomUUID().toString().substring(0, 8), 
                 nomPassager,
                 savedRes.getTrajet().getVilleDepart().getNomVille() + "-" + savedRes.getTrajet().getVilleArrivee().getNomVille(),
                 savedRes.getTrajet().getHeureDepart().toString(),
