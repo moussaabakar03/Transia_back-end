@@ -9,9 +9,9 @@ import java.util.List;
 @RepositoryRestResource(collectionResourceRel = "trajetEntities", path = "trajetEntities")
 public interface TrajetRepository extends JpaRepository<TrajetEntity, Long> {
     
-    // Recherche par l'entité Ville directement
+    
     List<TrajetEntity> findByVilleDepart(VilleEntity ville);
     
-    // Ou recherche par le nom à l'intérieur de l'entité Ville
+
     List<TrajetEntity> findByVilleDepart_NomVille(String nom);
 }

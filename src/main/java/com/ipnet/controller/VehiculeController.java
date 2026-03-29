@@ -42,7 +42,7 @@ public class VehiculeController {
 		vehiculeService.delete(id);
 	}
 
-	@GetMapping("/{id}") // L'id doit être entre accolades ici
+	@GetMapping("/{id}") 
 	public VehiculeDto getVehicule(@PathVariable Long id) { 
 	    return vehiculeService.getVehicule(id);
 	}

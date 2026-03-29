@@ -15,7 +15,7 @@ public class TrajetRequestDto {
     private LocalTime heureDepart;
     private StatutTrajet statut;
 
-    // Getters et Setters
+    
     public Long getVilleDepartId() { return villeDepartId; }
     public void setVilleDepartId(Long villeDepartId) { this.villeDepartId = villeDepartId; }
     public Long getVilleArriveeId() { return villeArriveeId; }

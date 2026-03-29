@@ -20,7 +20,7 @@ public class ReservationMapper {
         dto.setDateReservation(entity.getDateReservation());
         dto.setTrajetId(entity.getTrajet().getId());
         
-        // Conversion de la liste des billets
+        
         if (entity.getBillets() != null) {
             dto.setBillets(entity.getBillets().stream()
                     .map(billetMapper::toDto)

@@ -14,12 +14,12 @@ public class TrajetEntity extends BaseEntity {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
 
-    // Remplacement du String par une relation vers VilleEntity
+
     @ManyToOne
     @JoinColumn(name = "ville_depart_id", nullable = false)
     private VilleEntity villeDepart;
 
-    // Remplacement du String par une relation vers VilleEntity
+    
     @ManyToOne
     @JoinColumn(name = "ville_arrivee_id", nullable = false)
     private VilleEntity villeArrivee;
@@ -47,11 +47,11 @@ public class TrajetEntity extends BaseEntity {
     @JoinColumn(name = "vehicule_id")
     private VehiculeEntity vehicule;
 
-    // Constructeur vide
+
     public TrajetEntity() {
     }
 
-    // Constructeur complet mis à jour
+
     public TrajetEntity(Long id, VilleEntity villeDepart, VilleEntity villeArrivee, Double distance, 
                         String dureeEstimee, Double tarif, LocalDate dateDepart, 
                         LocalTime heureDepart, StatutTrajet statut, VehiculeEntity vehicule) {
@@ -68,7 +68,7 @@ public class TrajetEntity extends BaseEntity {
         this.vehicule = vehicule;
     }
 
-    // Getters et Setters mis à jour
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

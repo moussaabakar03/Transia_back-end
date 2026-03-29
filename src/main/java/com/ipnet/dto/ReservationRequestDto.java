@@ -12,7 +12,7 @@ public class ReservationRequestDto {
 
     public ReservationRequestDto() {}
 
-    // Getters et Setters
+    
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
 

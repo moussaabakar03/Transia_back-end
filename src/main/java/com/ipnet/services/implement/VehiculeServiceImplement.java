@@ -68,7 +68,7 @@ public class VehiculeServiceImplement implements VehiculeServiceInterface{
 
 	@Override
 	public VehiculeDto getVehicule(Long id) {
-		// TODO Auto-generated method stub
+		
 		VehiculeEntity rechercheVehicule = vehiculeRepository.findById(id).orElseThrow(() -> new RuntimeException("Vehicule non trouvé"));
 
 		return vehiculeMappers.toDto(rechercheVehicule);

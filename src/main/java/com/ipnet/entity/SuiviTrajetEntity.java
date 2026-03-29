@@ -13,8 +13,8 @@ public class SuiviTrajetEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // État du trajet (on peut utiliser une String ou une Enum)
-    private String statut; // "PROGRAMME", "EN_ROUTE", "ARRIVE", "ANNULE"
+
+    private String statut; 
 
     @OneToOne
     @JoinColumn(name = "trajet_id", nullable = false)
@@ -25,7 +25,7 @@ public class SuiviTrajetEntity extends BaseEntity {
 
     public SuiviTrajetEntity() {}
 
-    // Getters et Setters
+    
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getStatut() { return statut; }

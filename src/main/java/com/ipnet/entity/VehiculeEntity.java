@@ -24,7 +24,7 @@ public class VehiculeEntity extends BaseEntity{
 	@Column(name="Capacite", nullable=false)
 	private int capacite;
 	
-	@Enumerated(EnumType.STRING) // Recommandé : stocke "DISPONIBLE" au lieu de 0 dans la base
+	@Enumerated(EnumType.STRING) 
 	@Column(name="Statut")
 	private StatutVehicule statut;
 	

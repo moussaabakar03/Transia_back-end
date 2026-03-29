@@ -16,7 +16,7 @@ public class TrajetResponseDto {
     private LocalTime heureDepart;
     private StatutTrajet statut;
 
-    // Getters et Setters
+    
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getVilleDepartNom() { return villeDepartNom; }

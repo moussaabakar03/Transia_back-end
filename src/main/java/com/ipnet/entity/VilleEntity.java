@@ -19,19 +19,19 @@ public class VilleEntity extends BaseEntity {
     @Column(name="Region", length=100)
     private String region;
 
-    // Liste des trajets au départ de cette ville
+    
     @OneToMany(mappedBy = "villeDepart", cascade = CascadeType.ALL)
-    @JsonIgnore // Important pour éviter les boucles infinies en JSON
+    @JsonIgnore
     private List<TrajetEntity> trajetsDepart;
 
-    // Liste des trajets arrivant dans cette ville
+
     @OneToMany(mappedBy = "villeArrivee", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<TrajetEntity> trajetsArrivee;
 
     public VilleEntity() {}
 
-    // Getters et Setters
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

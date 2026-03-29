@@ -13,7 +13,7 @@ public class TrajetMapper {
         TrajetResponseDto response = new TrajetResponseDto();
         response.setId(entity.getId());
         
-        // Extraction des noms depuis les entités liées
+        
         if (entity.getVilleDepart() != null) {
             response.setVilleDepartNom(entity.getVilleDepart().getNomVille());
         }
