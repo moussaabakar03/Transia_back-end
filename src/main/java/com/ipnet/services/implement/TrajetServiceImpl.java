@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class TrajetServiceImpl implements ITrajetService {
+public class TrajetServiceImpl implements TrajetService {
 
     @Autowired private TrajetRepository trajetRepository;
     @Autowired private VilleRepository villeRepository;
