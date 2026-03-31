@@ -1,15 +1,18 @@
 package com.ipnet.services.implement;
 
 import java.time.LocalDateTime;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.ipnet.dto.PaiementRequestDto;
+import com.ipnet.dto.VehiculeDto;
 import com.ipnet.entity.PaiementEntity;
 import com.ipnet.entity.Reservation;
 import com.ipnet.enums.StatutBillet;
 import com.ipnet.enums.StatutReservation;
+import com.ipnet.mappers.PaiementMapper;
+import com.ipnet.mappers.VehiculeMappers;
 import com.ipnet.repository.PaiementRepository;
 import com.ipnet.repository.ReservationRepository;
 import com.ipnet.services.interfaces.PaiementServiceInterface;
@@ -19,22 +22,33 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PaiementServiceImpl implements PaiementServiceInterface {
 
-    @Autowired private ReservationRepository reservationRepository;
-    @Autowired private PaiementRepository paiementRepository;
 
-    @Transactional
+    private ReservationRepository reservationRepository;
+    private PaiementRepository paiementRepository;
+    private PaiementMapper paiementMapper;
+    
+    
+
+    public PaiementServiceImpl(VehiculeMappers vehiculeMappers, ReservationRepository reservationRepository,
+			PaiementRepository paiementRepository, PaiementMapper paiementMapper) {
+		super();
+		this.reservationRepository = reservationRepository;
+		this.paiementRepository = paiementRepository;
+		this.paiementMapper = paiementMapper;
+	}
+
+    
+	@Transactional
     public void validerPaiementCaisse(PaiementRequestDto dto) {
-        //Trouver la réservation
-        Reservation res = reservationRepository.findById(dto.getReservationId())
+        Reservation res = reservationRepository.findById(dto.getReservationId().getId())
             .orElseThrow(() -> new RuntimeException("Réservation introuvable"));
 
-        //Vérifier si elle n'est pas déjà payée ou expirée
         if (res.getStatut() != StatutReservation.EN_ATTENTE) {
             throw new RuntimeException("La réservation ne peut plus être payée (Statut: " + res.getStatut() + ")");
         }
 
-        //Calculer le montant attendu (Prix trajet * nombre places)
         Double montantAttendu = res.getTrajet().getTarif() * res.getNombrePlace();
+        
         
         //Vérification de sécurité sur le montant
         if (dto.getMontantVerse() < montantAttendu) {
@@ -43,6 +57,7 @@ public class PaiementServiceImpl implements PaiementServiceInterface {
 
         // Enregistrer le paiement
         PaiementEntity p = new PaiementEntity();
+        
         p.setReservation(res);
         p.setMontant(dto.getMontantVerse());
         p.setReference(dto.getReference());
@@ -56,4 +71,62 @@ public class PaiementServiceImpl implements PaiementServiceInterface {
         
         reservationRepository.save(res);
     }
+
+	@Override
+	public List<PaiementRequestDto> listePaiementCaisse() {
+
+		List<PaiementEntity> paiements = paiementRepository.findAll();
+		
+		ArrayList<PaiementRequestDto> paiementsDto = new ArrayList<>();
+		
+		for(PaiementEntity paiment : paiements)
+			paiementsDto.add(paiementMapper.toDto(paiment));
+		
+		return paiementsDto;
+	}
+
+	@Override
+    @Transactional
+    public PaiementRequestDto update(PaiementRequestDto dto, Long id) {
+        PaiementEntity paiement = paiementRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Paiement introuvable avec l'ID : " + id));
+
+        paiement.setReference(dto.getReference());
+        paiement.setModePaiement(dto.getModePaiement());
+        
+        paiement.setMontant(dto.getMontantVerse());
+
+        PaiementEntity updated = paiementRepository.save(paiement);
+        return paiementMapper.toDto(updated);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        PaiementEntity paiement = paiementRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Paiement introuvable"));
+
+
+        Reservation res = paiement.getReservation();
+        if (res != null) {
+            res.setStatut(StatutReservation.EN_ATTENTE);
+            res.getBillets().forEach(b -> b.setStatut(StatutBillet.EN_ATTENTE)); 
+            reservationRepository.save(res);
+        }
+
+        // 3. Suppression physique
+        paiementRepository.delete(paiement);
+    }
+
+    @Override
+    public PaiementRequestDto getPaiementCaisse(Long id) {
+
+    	PaiementEntity paiement = paiementRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Paiement introuvable"));
+            
+        return paiementMapper.toDto(paiement);
+    }
+	
+	
+    
 }
