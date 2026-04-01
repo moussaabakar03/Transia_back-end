@@ -1,19 +1,31 @@
 package com.ipnet.dto;
 
-
+import com.ipnet.entity.Reservation;
 import com.ipnet.enums.ModePaiement;
 import lombok.Data;
 
+
 @Data
 public class PaiementRequestDto {
-    private Long reservationId;
+	
+	
+    private Long id;
+    private Reservation reservationId;
     private Double montantVerse;
     private String reference; 
     private ModePaiement modePaiement;
-	public Long getReservationId() {
+
+    
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public Reservation getReservationId() {
 		return reservationId;
 	}
-	public void setReservationId(Long reservationId) {
+	public void setReservationId(Reservation reservationId) {
 		this.reservationId = reservationId;
 	}
 	public Double getMontantVerse() {

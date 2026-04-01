@@ -36,7 +36,7 @@ public class Reservation {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
     private User user;
-    
+
     @ManyToOne
     @JoinColumn(name = "trajet_id")
     private TrajetEntity trajet;
@@ -53,6 +53,7 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     private TypeReservation typeReservation;
     
+   
 
 	public Long getId() {
 		return id;
