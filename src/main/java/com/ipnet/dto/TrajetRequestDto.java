@@ -6,8 +6,8 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 public class TrajetRequestDto {
-    private Long villeDepartId;
-    private Long villeArriveeId;
+    private UUID villeDepartId;
+    private UUID villeArriveeId;
     private UUID vehiculeId;
     private Double distance;
     private String dureeEstimee;
@@ -17,10 +17,10 @@ public class TrajetRequestDto {
     private StatutTrajet statut;
 
     // Getters et Setters
-    public Long getVilleDepartId() { return villeDepartId; }
-    public void setVilleDepartId(Long villeDepartId) { this.villeDepartId = villeDepartId; }
-    public Long getVilleArriveeId() { return villeArriveeId; }
-    public void setVilleArriveeId(Long villeArriveeId) { this.villeArriveeId = villeArriveeId; }
+    public UUID getVilleDepartId() { return villeDepartId; }
+    public void setVilleDepartId(UUID villeDepartId) { this.villeDepartId = villeDepartId; }
+    public UUID getVilleArriveeId() { return villeArriveeId; }
+    public void setVilleArriveeId(UUID villeArriveeId) { this.villeArriveeId = villeArriveeId; }
     public UUID getVehiculeId() { return vehiculeId; }
     public void setVehiculeId(UUID vehiculeId) { this.vehiculeId = vehiculeId; }
     public Double getDistance() { return distance; }

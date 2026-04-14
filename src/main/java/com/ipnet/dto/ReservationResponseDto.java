@@ -3,20 +3,21 @@ package com.ipnet.dto;
 import com.ipnet.enums.StatutReservation;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public class ReservationResponseDto {
-    private Long id;
+    private UUID id;
     private LocalDateTime dateReservation;
     private StatutReservation statut;
     private int nombrePlace;
-    private Long trajetId;
+    private UUID trajetId;
     private List<BilletDto> billets;
     
     
-	public Long getId() {
+	public UUID getId() {
 		return id;
 	}
-	public void setId(Long id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 	public LocalDateTime getDateReservation() {
@@ -37,10 +38,10 @@ public class ReservationResponseDto {
 	public void setNombrePlace(int nombrePlace) {
 		this.nombrePlace = nombrePlace;
 	}
-	public Long getTrajetId() {
+	public UUID getTrajetId() {
 		return trajetId;
 	}
-	public void setTrajetId(Long trajetId) {
+	public void setTrajetId(UUID trajetId) {
 		this.trajetId = trajetId;
 	}
 	public List<BilletDto> getBillets() {

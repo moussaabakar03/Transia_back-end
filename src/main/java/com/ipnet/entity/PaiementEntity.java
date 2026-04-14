@@ -4,6 +4,9 @@ package com.ipnet.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.hibernate.annotations.UuidGenerator;
 
 import com.ipnet.enums.ModePaiement;
 
@@ -11,8 +14,8 @@ import com.ipnet.enums.ModePaiement;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class PaiementEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    private UUID id;
 
     private String reference; // Ex: "REC-2026-001"
     private Double montant;
@@ -25,11 +28,11 @@ public class PaiementEntity {
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 
-	public Long getId() {
+	public UUID getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 

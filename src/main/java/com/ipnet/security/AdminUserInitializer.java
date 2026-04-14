@@ -1,4 +1,4 @@
-package com.ipnet.security;
+/*package com.ipnet.security;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -59,6 +59,6 @@ public class AdminUserInitializer implements CommandLineRunner {
 
         System.out.println(">>> Admin créé avec succès (username: ATTA / password: Esso)");
     }
-}
+}*/
 
 

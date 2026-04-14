@@ -2,6 +2,9 @@ package com.ipnet.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+
+import org.hibernate.annotations.UuidGenerator;
 
 import com.ipnet.enums.StatutReservation;
 import com.ipnet.enums.TypeReservation;
@@ -11,8 +14,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -22,8 +23,8 @@ import jakarta.persistence.OneToOne;
 @Entity
 public class Reservation {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    private UUID id;
 
     private LocalDateTime dateReservation;
     private LocalDateTime expiration; // Date de resa + 36h
@@ -55,12 +56,12 @@ public class Reservation {
     
    
 
-	public Long getId() {
+	public UUID getId() {
 		return id;
 	}
 
 
-	public void setId(Long id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 

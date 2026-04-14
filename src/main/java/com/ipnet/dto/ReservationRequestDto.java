@@ -2,10 +2,11 @@ package com.ipnet.dto;
 
 
 import java.util.List;
+import java.util.UUID;
 
 public class ReservationRequestDto {
     private Long userId;          
-    private Long trajetId;       
+    private UUID trajetId;       
     private int nombrePlace;     
     private String nomResponsable; 
     private List<String> nomsPassagers; 
@@ -16,8 +17,8 @@ public class ReservationRequestDto {
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
 
-    public Long getTrajetId() { return trajetId; }
-    public void setTrajetId(Long trajetId) { this.trajetId = trajetId; }
+    public UUID getTrajetId() { return trajetId; }
+    public void setTrajetId(UUID trajetId) { this.trajetId = trajetId; }
 
     public int getNombrePlace() { return nombrePlace; }
     public void setNombrePlace(int nombrePlace) { this.nombrePlace = nombrePlace; }
