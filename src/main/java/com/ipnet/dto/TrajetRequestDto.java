@@ -3,11 +3,12 @@ package com.ipnet.dto;
 import com.ipnet.enums.StatutTrajet;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 public class TrajetRequestDto {
     private Long villeDepartId;
     private Long villeArriveeId;
-    private Long vehiculeId;
+    private UUID vehiculeId;
     private Double distance;
     private String dureeEstimee;
     private Double tarif;
@@ -20,8 +21,8 @@ public class TrajetRequestDto {
     public void setVilleDepartId(Long villeDepartId) { this.villeDepartId = villeDepartId; }
     public Long getVilleArriveeId() { return villeArriveeId; }
     public void setVilleArriveeId(Long villeArriveeId) { this.villeArriveeId = villeArriveeId; }
-    public Long getVehiculeId() { return vehiculeId; }
-    public void setVehiculeId(Long vehiculeId) { this.vehiculeId = vehiculeId; }
+    public UUID getVehiculeId() { return vehiculeId; }
+    public void setVehiculeId(UUID vehiculeId) { this.vehiculeId = vehiculeId; }
     public Double getDistance() { return distance; }
     public void setDistance(Double distance) { this.distance = distance; }
     public String getDureeEstimee() { return dureeEstimee; }
