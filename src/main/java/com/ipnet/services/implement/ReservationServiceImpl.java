@@ -109,7 +109,7 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
 
     @Override
     @Transactional
-    public void annulerReservation(Long id) {
+    public void annulerReservation(UUID id) {
         Reservation res = reservationRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Réservation introuvable"));
         
@@ -128,7 +128,7 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
 
     @Override
     @Transactional
-    public ReservationResponseDto getById(Long id) {
+    public ReservationResponseDto getById(UUID id) {
         Reservation res = reservationRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Réservation non trouvée"));
         
@@ -142,7 +142,7 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
     }
 
     @Override
-    public Integer nombrePlaceTrajet(Long trajetId) {
+    public Integer nombrePlaceTrajet(UUID trajetId) {
         Integer total = reservationRepository.sumPlacesOccupéesByTrajetId(trajetId);
         return (total != null) ? total : 0;
     }
@@ -158,7 +158,7 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
     
     @Override
     @Transactional
-    public ReservationResponseDto modifierReservation(Long id, ReservationRequestDto dto) {
+    public ReservationResponseDto modifierReservation(UUID id, ReservationRequestDto dto) {
         Reservation res = reservationRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Réservation introuvable avec l'ID : " + id));
 

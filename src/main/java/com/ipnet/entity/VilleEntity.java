@@ -4,14 +4,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ipnet.utils.BaseEntity;
 import jakarta.persistence.*;
 import java.util.List;
+import java.util.UUID;
+
+import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name="Ville")
 public class VilleEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    private UUID id;
 
     @Column(name="NomVille", nullable=false, length=150)
     private String nomVille;
@@ -32,8 +35,8 @@ public class VilleEntity extends BaseEntity {
     public VilleEntity() {}
 
     // Getters et Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
     public String getNomVille() { return nomVille; }
     public void setNomVille(String nomVille) { this.nomVille = nomVille; }

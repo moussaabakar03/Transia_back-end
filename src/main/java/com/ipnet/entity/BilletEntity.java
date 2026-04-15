@@ -1,12 +1,13 @@
 package com.ipnet.entity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.hibernate.annotations.UuidGenerator;
 
 import com.ipnet.enums.StatutBillet;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -14,8 +15,8 @@ import jakarta.persistence.ManyToOne;
 @Entity
 public class BilletEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    private UUID id;
     private String qrCode; // Identifiant unique pour le QR
     private StatutBillet statut;
     private LocalDateTime dateEmission;
@@ -25,11 +26,11 @@ public class BilletEntity {
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 
-	public Long getId() {
+	public UUID getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 

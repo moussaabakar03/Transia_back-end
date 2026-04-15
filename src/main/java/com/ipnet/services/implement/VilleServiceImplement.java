@@ -2,6 +2,7 @@ package com.ipnet.services.implement;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class VilleServiceImplement implements VilleServiceInterface {
     }
 
     @Override
-    public VilleDto update(VilleDto villeDto, Long id) {
+    public VilleDto update(VilleDto villeDto, UUID id) {
         VilleEntity ville = villeRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Ville non trouvée avec l'id : " + id));
         
@@ -46,7 +47,7 @@ public class VilleServiceImplement implements VilleServiceInterface {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(UUID id) {
         if (!villeRepository.existsById(id)) {
             throw new RuntimeException("Impossible de supprimer : Ville non trouvée");
         }
@@ -54,7 +55,7 @@ public class VilleServiceImplement implements VilleServiceInterface {
     }
 
     @Override
-    public VilleDto getVille(Long id) {
+    public VilleDto getVille(UUID id) {
         VilleEntity ville = villeRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Ville non trouvée"));
         return new VilleDto(ville.getId(), ville.getNomVille(), ville.getRegion());

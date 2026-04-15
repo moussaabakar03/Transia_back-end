@@ -3,9 +3,10 @@ package com.ipnet.dto;
 import com.ipnet.enums.StatutTrajet;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 public class TrajetResponseDto {
-    private Long id;
+    private UUID id;
     private String villeDepartNom;
     private String villeArriveeNom;
     private String vehiculeImmatriculation;
@@ -17,8 +18,8 @@ public class TrajetResponseDto {
     private StatutTrajet statut;
 
     // Getters et Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
     public String getVilleDepartNom() { return villeDepartNom; }
     public void setVilleDepartNom(String villeDepartNom) { this.villeDepartNom = villeDepartNom; }
     public String getVilleArriveeNom() { return villeArriveeNom; }
