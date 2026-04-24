@@ -1,10 +1,12 @@
 package com.ipnet.dto;
 
+import java.util.UUID;
+
 import com.ipnet.enums.StatutVehicule;
 
 public class VehiculeDto {
 
-	private Long id;
+	private UUID id;
 	
 	private String marque;
 	
@@ -24,7 +26,7 @@ public class VehiculeDto {
 	
 
 
-	public VehiculeDto(Long id, String marque, String modele, String immatriculation, int capacite,
+	public VehiculeDto(UUID id, String marque, String modele, String immatriculation, int capacite,
 			StatutVehicule statut, String image) {
 		super();
 		this.id = id;
@@ -38,12 +40,12 @@ public class VehiculeDto {
 
 
 
-	public Long getId() {
+	public UUID getId() {
 		return id;
 	}
 
 
-	public void setId(Long id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 

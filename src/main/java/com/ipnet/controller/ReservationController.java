@@ -1,6 +1,7 @@
 package com.ipnet.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +26,12 @@ public class ReservationController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ReservationResponseDto> getById(@PathVariable Long id) {
+    public ResponseEntity<ReservationResponseDto> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(reservationService.getById(id));
     }
     
     @GetMapping("/trajet/{trajetId}")
-    public Integer nombrePlaceTrajet(@PathVariable Long trajetId) {
+    public Integer nombrePlaceTrajet(@PathVariable UUID trajetId) {
     	return reservationService.nombrePlaceTrajet(trajetId);
     }
     
@@ -42,7 +43,7 @@ public class ReservationController {
     
     @PutMapping("/{id}")
     public ResponseEntity<ReservationResponseDto> modifier(
-            @PathVariable Long id, 
+            @PathVariable UUID id, 
             @RequestBody ReservationRequestDto dto) { 
         return ResponseEntity.ok(reservationService.modifierReservation(id, dto));
     }

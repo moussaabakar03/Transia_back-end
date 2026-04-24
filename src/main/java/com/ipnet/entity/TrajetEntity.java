@@ -2,6 +2,10 @@ package com.ipnet.entity;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
+
+import org.hibernate.annotations.UuidGenerator;
+
 import com.ipnet.enums.StatutTrajet;
 import com.ipnet.utils.BaseEntity;
 import jakarta.persistence.*;
@@ -11,8 +15,8 @@ import jakarta.persistence.*;
 public class TrajetEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    private UUID id;
 
     // Remplacement du String par une relation vers VilleEntity
     @ManyToOne
@@ -52,7 +56,7 @@ public class TrajetEntity extends BaseEntity {
     }
 
     // Constructeur complet mis à jour
-    public TrajetEntity(Long id, VilleEntity villeDepart, VilleEntity villeArrivee, Double distance, 
+    public TrajetEntity(UUID id, VilleEntity villeDepart, VilleEntity villeArrivee, Double distance, 
                         String dureeEstimee, Double tarif, LocalDate dateDepart, 
                         LocalTime heureDepart, StatutTrajet statut, VehiculeEntity vehicule) {
         super();
@@ -69,8 +73,8 @@ public class TrajetEntity extends BaseEntity {
     }
 
     // Getters et Setters mis à jour
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
     public VilleEntity getVilleDepart() { return villeDepart; }
     public void setVilleDepart(VilleEntity villeDepart) { this.villeDepart = villeDepart; }

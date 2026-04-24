@@ -2,6 +2,7 @@ package com.ipnet.services.implement;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -44,7 +45,7 @@ public class VehiculeServiceImplement implements VehiculeServiceInterface{
 	}*/
 
 	@Override
-	public VehiculeDto update(VehiculeDto vehiculeDto, Long id) {
+	public VehiculeDto update(VehiculeDto vehiculeDto, UUID id) {
 	    // 1. Vérifier que le véhicule existe
 	    if (!vehiculeRepository.existsById(id)) {
 	        throw new RuntimeException("Vehicule non trouvé avec l'id : " + id);
@@ -54,20 +55,21 @@ public class VehiculeServiceImplement implements VehiculeServiceInterface{
 	    VehiculeEntity vehicule = vehiculeMappers.toEntity(vehiculeDto);
 	    
 	    // 3. Forcer l'ID pour être sûr de faire un "Update" et non un "Create"
-	    vehicule.setId(id.longValue()); // Attention : ton entité utilise 'int id' et le DTO 'Long id'
-	    
+	    //vehicule.setId(id.longValue()); // Attention : ton entité utilise 'int id' et le DTO 'Long id'
+	    vehicule.setId(id); // Attention : ton entité utilise 'int id' et le DTO 'Long id'
+
 	    VehiculeEntity vehiculeSave = vehiculeRepository.save(vehicule);
 	    return vehiculeMappers.toDto(vehiculeSave);
 	}
 
 
 	@Override
-	public void delete(Long id) {
+	public void delete(UUID id) {
 		vehiculeRepository.deleteById(id);
 	}
 
 	@Override
-	public VehiculeDto getVehicule(Long id) {
+	public VehiculeDto getVehicule(UUID id) {
 		// TODO Auto-generated method stub
 		VehiculeEntity rechercheVehicule = vehiculeRepository.findById(id).orElseThrow(() -> new RuntimeException("Vehicule non trouvé"));
 

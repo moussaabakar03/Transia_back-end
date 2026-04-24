@@ -1,5 +1,9 @@
 package com.ipnet.entity;
 
+import java.util.UUID;
+
+import org.hibernate.annotations.UuidGenerator;
+
 import com.ipnet.utils.BaseEntity;
 import jakarta.persistence.*;
 
@@ -7,8 +11,8 @@ import jakarta.persistence.*;
 @Table(name = "commentaires")
 public class CommentaireEntity extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    private UUID id;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String contenu;
@@ -19,8 +23,8 @@ public class CommentaireEntity extends BaseEntity {
 
     public CommentaireEntity() {}
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
     public String getContenu() { return contenu; }
     public void setContenu(String contenu) { this.contenu = contenu; }
     public TrajetEntity getTrajet() { return trajet; }

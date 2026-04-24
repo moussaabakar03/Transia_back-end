@@ -1,5 +1,9 @@
 package com.ipnet.entity;
 
+import java.util.UUID;
+
+import org.hibernate.annotations.UuidGenerator;
+
 import com.ipnet.utils.BaseEntity;
 import jakarta.persistence.*;
 
@@ -7,8 +11,8 @@ import jakarta.persistence.*;
 @Table(name = "notes")
 public class NoteEntity extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator
+    private UUID id;
 
     @Column(nullable = false)
     private int valeur; // Note de 1 à 5
@@ -19,8 +23,8 @@ public class NoteEntity extends BaseEntity {
 
     public NoteEntity() {}
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
     public int getValeur() { return valeur; }
     public void setValeur(int valeur) { this.valeur = valeur; }
     public TrajetEntity getTrajet() { return trajet; }

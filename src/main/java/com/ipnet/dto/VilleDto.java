@@ -1,15 +1,17 @@
 package com.ipnet.dto;
 
+import java.util.UUID;
+
 public class VilleDto {
 
-    private Long id;
+    private UUID id;
     private String nomVille;
     private String region;
 
     public VilleDto() {
     }
 
-    public VilleDto(Long id, String nomVille, String region) {
+    public VilleDto(UUID id, String nomVille, String region) {
         super();
         this.id = id;
         this.nomVille = nomVille;
@@ -17,8 +19,8 @@ public class VilleDto {
     }
 
     // Getters et Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
     public String getNomVille() { return nomVille; }
     public void setNomVille(String nomVille) { this.nomVille = nomVille; }

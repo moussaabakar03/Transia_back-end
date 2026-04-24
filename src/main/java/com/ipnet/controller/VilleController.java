@@ -1,6 +1,7 @@
 package com.ipnet.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,17 +38,17 @@ public class VilleController {
     }
 
     @GetMapping("/{id}")
-    public VilleDto get(@PathVariable Long id) {
+    public VilleDto get(@PathVariable UUID id) {
         return villeService.getVille(id);
     }
 
     @PutMapping("/{id}")
-    public VilleDto update(@RequestBody VilleDto villeDto, @PathVariable Long id) {
+    public VilleDto update(@RequestBody VilleDto villeDto, @PathVariable UUID id) {
         return villeService.update(villeDto, id);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable UUID id) {
         villeService.delete(id);
     }
 }

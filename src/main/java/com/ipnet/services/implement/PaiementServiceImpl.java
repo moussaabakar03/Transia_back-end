@@ -3,10 +3,10 @@ package com.ipnet.services.implement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.ipnet.dto.PaiementRequestDto;
-import com.ipnet.dto.VehiculeDto;
 import com.ipnet.entity.PaiementEntity;
 import com.ipnet.entity.Reservation;
 import com.ipnet.enums.StatutBillet;
@@ -85,9 +85,9 @@ public class PaiementServiceImpl implements PaiementServiceInterface {
 		return paiementsDto;
 	}
 
-	@Override
+    @Override
     @Transactional
-    public PaiementRequestDto update(PaiementRequestDto dto, Long id) {
+    public PaiementRequestDto update(PaiementRequestDto dto, UUID id) {
         PaiementEntity paiement = paiementRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Paiement introuvable avec l'ID : " + id));
 
@@ -102,7 +102,7 @@ public class PaiementServiceImpl implements PaiementServiceInterface {
 
     @Override
     @Transactional
-    public void delete(Long id) {
+    public void delete(UUID id) {
         PaiementEntity paiement = paiementRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Paiement introuvable"));
 
@@ -119,7 +119,7 @@ public class PaiementServiceImpl implements PaiementServiceInterface {
     }
 
     @Override
-    public PaiementRequestDto getPaiementCaisse(Long id) {
+    public PaiementRequestDto getPaiementCaisse(UUID id) {
 
     	PaiementEntity paiement = paiementRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Paiement introuvable"));

@@ -2,9 +2,10 @@ package com.ipnet.dto;
 
 import com.ipnet.enums.StatutBillet;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class BilletDto {
-    private Long id;
+    private UUID id;
     private String qrCode;
     private String nomPassager;
     private StatutBillet statut;
@@ -12,11 +13,11 @@ public class BilletDto {
 
     public BilletDto() {}
 
-	public Long getId() {
+	public UUID getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 

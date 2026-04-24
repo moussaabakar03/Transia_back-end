@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/trajet")
@@ -35,7 +36,7 @@ public class TrajetController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<TrajetEntity> getTrajetById(@PathVariable Long id) {
+    public ResponseEntity<TrajetEntity> getTrajetById(@PathVariable UUID id) {
         return trajetRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -78,7 +79,7 @@ public class TrajetController {
 
     
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateTrajet(@PathVariable Long id, @RequestBody TrajetRequestDto request) {
+    public ResponseEntity<?> updateTrajet(@PathVariable UUID id, @RequestBody TrajetRequestDto request) {
         return trajetRepository.findById(id).map(trajet -> {
             VilleEntity depart = villeRepository.findById(request.getVilleDepartId()).get();
             VilleEntity arrivee = villeRepository.findById(request.getVilleArriveeId()).get();
@@ -95,7 +96,7 @@ public class TrajetController {
 
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteTrajet(@PathVariable Long id) {
+    public ResponseEntity<?> deleteTrajet(@PathVariable UUID id) {
         return trajetRepository.findById(id).map(trajet -> {
             trajetRepository.delete(trajet);
             return ResponseEntity.ok().build();

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,14 +58,14 @@ public class TrajetServiceImpl implements TrajetService {
     }
 
     @Override
-    public TrajetResponseDto obtenirTrajet(Long id) {
+    public TrajetResponseDto obtenirTrajet(UUID id) {
         return trajetRepository.findById(id)
                 .map(trajetMapper::toResponse)
                 .orElseThrow(() -> new RuntimeException("Trajet introuvable"));
     }
 
     @Override
-    public void supprimerTrajet(Long id) {
+    public void supprimerTrajet(UUID id) {
         trajetRepository.deleteById(id);
     }
 }

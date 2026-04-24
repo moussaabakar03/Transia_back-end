@@ -1,5 +1,9 @@
 package com.ipnet.entity;
 
+import java.util.UUID;
+
+import org.hibernate.annotations.UuidGenerator;
+
 import com.ipnet.enums.StatutVehicule;
 import jakarta.persistence.*;
 import com.ipnet.utils.BaseEntity;
@@ -9,8 +13,8 @@ import com.ipnet.utils.BaseEntity;
 public class VehiculeEntity extends BaseEntity{
 	
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private Long id;
+	@UuidGenerator
+	private UUID id;
 	
 	@Column(name="Marque", nullable=true, length=150)
 	private String marque;
@@ -37,7 +41,7 @@ public class VehiculeEntity extends BaseEntity{
 	
 
 
-	public VehiculeEntity(Long id, String marque, String modele, String immatriculation, int capacite,
+	public VehiculeEntity(UUID id, String marque, String modele, String immatriculation, int capacite,
 			StatutVehicule statut, String image) {
 		super();
 		this.id = id;
@@ -51,12 +55,12 @@ public class VehiculeEntity extends BaseEntity{
 
 
 
-	public Long getId() {
+	public UUID getId() {
 		return id;
 	}
 
 
-	public void setId(Long id) {
+	public void setId(UUID id) {
 		this.id = id;
 	}
 
