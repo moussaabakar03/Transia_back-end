@@ -1,6 +1,11 @@
 package com.ipnet.dto;
 
+
 import com.ipnet.enums.StatutReservation;
+import com.ipnet.enums.TypeReservation;
+import com.ipnet.security.dto.UserDTO;
+
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -12,6 +17,11 @@ public class ReservationResponseDto {
     private int nombrePlace;
     private UUID trajetId;
     private List<BilletDto> billets;
+    
+    private String nomResponsable;
+    //private UserDTO user;
+    //private PaiementRequestDto paiement;
+    private TypeReservation typeReservation;
     
     
 	public UUID getId() {
@@ -50,7 +60,32 @@ public class ReservationResponseDto {
 	public void setBillets(List<BilletDto> billets) {
 		this.billets = billets;
 	}
+	public String getNomResponsable() {
+		return nomResponsable;
+	}
+	public void setNomResponsable(String nomResponsable) {
+		this.nomResponsable = nomResponsable;
+	}
+	/*
+	public UserDTO getUser() {
+		return user;
+	}
+	public void setUser(UserDTO user) {
+		this.user = user;
+	}
+	public PaiementRequestDto getPaiement() {
+		return paiement;
+	}
+	public void setPaiement(PaiementRequestDto paiement) {
+		this.paiement = paiement;
+	}
+	*/
+	public TypeReservation getTypeReservation() {
+		return typeReservation;
+	}
+	public void setTypeReservation(TypeReservation typeReservation) {
+		this.typeReservation = typeReservation;
+	}
 
-    // Getters et Setters...
     
 }

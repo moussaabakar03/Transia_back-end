@@ -12,5 +12,6 @@ public interface VehiculeServiceInterface {
 	public void delete(UUID id);
 	public VehiculeDto getVehicule(UUID id);
 	public List<VehiculeDto> listeVehicule();
+	public List<VehiculeDto> ListevehiculeDisponible();
 	
 }

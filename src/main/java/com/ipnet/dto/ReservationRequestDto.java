@@ -4,12 +4,16 @@ package com.ipnet.dto;
 import java.util.List;
 import java.util.UUID;
 
+import com.ipnet.enums.TypeReservation;
+
 public class ReservationRequestDto {
     private Long userId;          
     private UUID trajetId;       
     private int nombrePlace;     
     private String nomResponsable; 
     private List<String> nomsPassagers; 
+    private TypeReservation typeReservation;
+
 
     public ReservationRequestDto() {}
 
@@ -28,4 +32,13 @@ public class ReservationRequestDto {
 
     public List<String> getNomsPassagers() { return nomsPassagers; }
     public void setNomsPassagers(List<String> nomsPassagers) { this.nomsPassagers = nomsPassagers; }
+
+	public TypeReservation getTypeReservation() {
+		return typeReservation;
+	}
+
+	public void setTypeReservation(TypeReservation typeReservation) {
+		this.typeReservation = typeReservation;
+	}
+    
 }

@@ -67,6 +67,7 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
         res.setTrajet(trajet);
         res.setNombrePlace(dto.getNombrePlace());
         res.setNomResponsable(dto.getNomResponsable());
+        res.setTypeReservation(dto.getTypeReservation());
         
         Reservation savedRes = reservationRepository.save(res);
 
@@ -82,7 +83,7 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
 
             String nomPassager = (i == 0) ? dto.getNomResponsable() : 
                 (dto.getNomsPassagers() != null && i - 1 < dto.getNomsPassagers().size()) ? 
-                dto.getNomsPassagers().get(i - 1) : "Invité de " + dto.getNomResponsable();
+                dto.getNomsPassagers().get(i - 1) : "Invité "+ i +" de " + dto.getNomResponsable();
 
             billet.setNomPassager(nomPassager);
 
@@ -219,6 +220,15 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
 
         return reservationMapper.toDto(reservationRepository.save(res));
     }
+    
+    @Override
+    public List<ReservationResponseDto> getReservationsByTrajet(UUID trajetId) {
+        return reservationRepository.findByTrajetId(trajetId)
+                .stream()
+                .map(reservationMapper::toDto)
+                .collect(Collectors.toList());
+    }
+    
     
     
 }

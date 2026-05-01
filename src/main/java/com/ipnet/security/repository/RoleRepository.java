@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import com.ipnet.security.enums.UserRole;
 import com.ipnet.security.model.Role;
+import com.ipnet.security.model.User;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -13,12 +14,14 @@ import java.util.UUID;
 public interface RoleRepository extends JpaRepository<Role, Long> {
 
 	
-	    Optional<Role> findByName(UserRole name);
+	    //Optional<Role> findByName(UserRole name);
 	    
 
 	    Optional<Role> findByPublicId(UUID publicId);
 
 	    boolean existsByName(UserRole name);
-	
+
+
+		Optional<Role> findByName(String name);
 
 }

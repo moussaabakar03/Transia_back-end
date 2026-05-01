@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
 
 import com.ipnet.enums.StatutTrajet;
+import com.ipnet.security.model.User;
 import com.ipnet.utils.BaseEntity;
 import jakarta.persistence.*;
 
@@ -50,28 +51,34 @@ public class TrajetEntity extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "vehicule_id")
     private VehiculeEntity vehicule;
+    
+    
+    @ManyToOne
+    @JoinColumn(name = "chauffeur_id")
+    private User chauffeur;
 
     // Constructeur vide
     public TrajetEntity() {
     }
 
     // Constructeur complet mis à jour
-    public TrajetEntity(UUID id, VilleEntity villeDepart, VilleEntity villeArrivee, Double distance, 
-                        String dureeEstimee, Double tarif, LocalDate dateDepart, 
-                        LocalTime heureDepart, StatutTrajet statut, VehiculeEntity vehicule) {
-        super();
-        this.id = id;
-        this.villeDepart = villeDepart;
-        this.villeArrivee = villeArrivee;
-        this.distance = distance;
-        this.dureeEstimee = dureeEstimee;
-        this.tarif = tarif;
-        this.dateDepart = dateDepart;
-        this.heureDepart = heureDepart;
-        this.statut = statut;
-        this.vehicule = vehicule;
-    }
-
+    public TrajetEntity(UUID id, VilleEntity villeDepart, VilleEntity villeArrivee, Double distance,
+            String dureeEstimee, Double tarif, LocalDate dateDepart,
+            LocalTime heureDepart, StatutTrajet statut, VehiculeEntity vehicule,
+            User chauffeur) {
+			super();
+			this.id = id;
+			this.villeDepart = villeDepart;
+			this.villeArrivee = villeArrivee;
+			this.distance = distance;
+			this.dureeEstimee = dureeEstimee;
+			this.tarif = tarif;
+			this.dateDepart = dateDepart;
+			this.heureDepart = heureDepart;
+			this.statut = statut;
+			this.vehicule = vehicule;
+			this.chauffeur = chauffeur;
+			}
     // Getters et Setters mis à jour
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -102,4 +109,7 @@ public class TrajetEntity extends BaseEntity {
 
     public VehiculeEntity getVehicule() { return vehicule; }
     public void setVehicule(VehiculeEntity vehicule) { this.vehicule = vehicule; }
+    
+    public User getChauffeur() { return chauffeur; }
+    public void setChauffeur(User chauffeur) { this.chauffeur = chauffeur; }
 }
