@@ -17,6 +17,7 @@ public interface UserService {
     UserDTO updatePassword(UUID id, PasswordDTO passwordDTO);
     List<HistoryReponse> getAllHistory();
     List<RoleDTO> getAllRoles();
+    List<UserRoleReponse> getChauffeurs();
     
 
 }

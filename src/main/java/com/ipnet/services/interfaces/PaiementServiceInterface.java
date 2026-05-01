@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.ipnet.dto.PaiementRequestDto;
+import com.ipnet.dto.ReservationResponseDto;
 
 public interface PaiementServiceInterface {
 
@@ -12,6 +13,6 @@ public interface PaiementServiceInterface {
     public PaiementRequestDto update(PaiementRequestDto paiementRequestDto, UUID id);
 	public void delete(UUID id);
 	public PaiementRequestDto getPaiementCaisse(UUID id);
-	
+	List<ReservationResponseDto> getReservationsByTrajet(UUID trajetId);
 
 }

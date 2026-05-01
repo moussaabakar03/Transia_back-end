@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ipnet.enums.ModePaiement;
 
 @Entity
@@ -26,6 +27,7 @@ public class PaiementEntity {
 
     @OneToOne
     @JoinColumn(name = "reservation_id")
+    @JsonIgnore
     private Reservation reservation;
 
 	public UUID getId() {

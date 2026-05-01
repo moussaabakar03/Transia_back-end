@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ipnet.enums.StatutBillet;
 
 import jakarta.persistence.Entity;
@@ -24,6 +25,7 @@ public class BilletEntity {
 
     @ManyToOne
     @JoinColumn(name = "reservation_id")
+    @JsonIgnore
     private Reservation reservation;
 
 	public UUID getId() {
