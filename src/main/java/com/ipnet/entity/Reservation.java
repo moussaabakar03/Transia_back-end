@@ -27,7 +27,7 @@ public class Reservation {
     private UUID id;
 
     private LocalDateTime dateReservation;
-    private LocalDateTime expiration; // Date de resa + 36h
+    private LocalDateTime expiration; 
     private int nombrePlace;
     private String nomResponsable;
 

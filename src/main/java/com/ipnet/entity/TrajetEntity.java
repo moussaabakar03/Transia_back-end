@@ -24,7 +24,7 @@ public class TrajetEntity extends BaseEntity {
     @JoinColumn(name = "ville_depart_id", nullable = false)
     private VilleEntity villeDepart;
 
-    // Remplacement du String par une relation vers VilleEntity
+    
     @ManyToOne
     @JoinColumn(name = "ville_arrivee_id", nullable = false)
     private VilleEntity villeArrivee;
