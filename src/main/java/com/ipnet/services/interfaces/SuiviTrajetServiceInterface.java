@@ -1,5 +1,6 @@
 package com.ipnet.services.interfaces;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.ipnet.dto.SuiviTrajetDto;

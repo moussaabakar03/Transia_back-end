@@ -14,4 +14,6 @@ public interface ReservationServiceInterface {
 	void annulerReservation(UUID id);
 	ReservationResponseDto modifierReservation(UUID id, ReservationRequestDto dto);
 	List<ReservationResponseDto> getReservationsByTrajet(UUID trajetId);
+    List<String> getOccupiedSeats(UUID trajetId);
+
 }

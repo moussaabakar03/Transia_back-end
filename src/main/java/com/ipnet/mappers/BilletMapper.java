@@ -14,6 +14,7 @@ public class BilletMapper {
         dto.setNomPassager(entity.getNomPassager());
         dto.setStatut(entity.getStatut());
         dto.setDateEmission(entity.getDateEmission());
+        dto.setNumeroSiege(entity.getNumeroSiege()); //
         return dto;
     }
 }
