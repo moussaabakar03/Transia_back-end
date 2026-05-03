@@ -3,6 +3,7 @@ package com.ipnet.services.implement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -102,7 +103,9 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
             billet.setQrCode(infoQr); 
             billets.add(billet);
         }
-
+        // 4.5 Attribution des sièges (si demandés)
+        assignerSieges(billets, dto.getSiegesChoisis(), trajet, false, null);
+        
         billetRepository.saveAll(billets);        
         return reservationMapper.toDto(savedRes);
     }
@@ -215,6 +218,9 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
             nouveauxBillets.add(billet);
         }
 
+        // Attribution des sièges pour la modification
+        assignerSieges(nouveauxBillets, dto.getSiegesChoisis(), res.getTrajet(), true, res);
+        
         billetRepository.saveAll(nouveauxBillets);
         res.setBillets(nouveauxBillets); 
 
@@ -229,6 +235,56 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
                 .collect(Collectors.toList());
     }
     
+    
+    private void assignerSieges(List<BilletEntity> billets, List<String> siegesChoisis, 
+            TrajetEntity trajet, boolean isModification, Reservation existingRes) {
+    	
+		if (siegesChoisis == null || siegesChoisis.isEmpty()) {
+			// Aucun siège demandé → on laisse null (attribution automatique)
+			return;
+		}
+		
+		int capacite = trajet.getVehicule().getCapacite();
+		
+		// Récupérer les sièges déjà occupés (en excluant les billets de la réservation en cours si modification)
+		List<String> occupes = billetRepository.findOccupiedSeatsByTrajetId(trajet.getId());
+		if (isModification && existingRes != null && existingRes.getBillets() != null) {
+			// Retirer les sièges de l'ancienne réservation (ils vont être remplacés)
+			existingRes.getBillets().stream()
+			.map(BilletEntity::getNumeroSiege)
+			.filter(Objects::nonNull)
+			.forEach(occupes::remove);
+		}
+		
+		// Vérifier chaque siège choisi
+		for (String siege : siegesChoisis) {
+		// Optionnel : valider le format (ex: entier 1..capacite, ou format "1A")
+			try {
+				int num = Integer.parseInt(siege); // si vos sièges sont des nombres
+				if (num < 1 || num > capacite) {
+				throw new RuntimeException("Siège invalide : " + siege);
+				}
+			} catch (NumberFormatException e) {
+			// Si format alphanumérique, vous pouvez définir une autre validation
+			}
+			
+			if (occupes.contains(siege)) {
+				throw new RuntimeException("Le siège " + siege + " est déjà occupé.");
+			}
+		}
+		
+		// Si tout est bon, attribuer les sièges dans l'ordre de la liste
+		for (int i = 0; i < billets.size() && i < siegesChoisis.size(); i++) {
+			billets.get(i).setNumeroSiege(siegesChoisis.get(i));
+		}
+		// Si la liste de sièges est plus courte que le nombre de billets, les derniers n'auront pas de siège (automatique)
+	}
+    
+    
+    @Override
+    public List<String> getOccupiedSeats(UUID trajetId) {
+        return billetRepository.findOccupiedSeatsByTrajetId(trajetId);
+    }
     
     
 }

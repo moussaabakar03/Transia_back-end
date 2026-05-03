@@ -14,6 +14,7 @@ public class ReservationRequestDto {
     private List<String> nomsPassagers; 
     private TypeReservation typeReservation;
 
+    private List<String> siegesChoisis;  // facultatif, peut être vide ou null
 
     public ReservationRequestDto() {}
 
@@ -41,4 +42,7 @@ public class ReservationRequestDto {
 		this.typeReservation = typeReservation;
 	}
     
+    public List<String> getSiegesChoisis() { return siegesChoisis; }
+    
+    public void setSiegesChoisis(List<String> siegesChoisis) { this.siegesChoisis = siegesChoisis; }
 }

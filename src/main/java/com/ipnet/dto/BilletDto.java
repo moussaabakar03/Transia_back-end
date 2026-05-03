@@ -11,6 +11,9 @@ public class BilletDto {
     private StatutBillet statut;
     private LocalDateTime dateEmission;
 
+    private String numeroSiege;
+
+    
     public BilletDto() {}
 
 	public UUID getId() {
@@ -52,7 +55,11 @@ public class BilletDto {
 	public void setDateEmission(LocalDateTime dateEmission) {
 		this.dateEmission = dateEmission;
 	}
-
+	
+    public String getNumeroSiege() { return numeroSiege; }
+    
+    public void setNumeroSiege(String numeroSiege) { this.numeroSiege = numeroSiege; }
+    
     
 }
 
