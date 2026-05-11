@@ -4,14 +4,18 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 import com.ipnet.dto.PaiementRequestDto;
+import com.ipnet.dto.ReservationResponseDto;
 import com.ipnet.entity.PaiementEntity;
 import com.ipnet.entity.Reservation;
 import com.ipnet.enums.StatutBillet;
 import com.ipnet.enums.StatutReservation;
 import com.ipnet.mappers.PaiementMapper;
+import com.ipnet.mappers.ReservationMapper;
 import com.ipnet.mappers.VehiculeMappers;
 import com.ipnet.repository.PaiementRepository;
 import com.ipnet.repository.ReservationRepository;
@@ -22,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PaiementServiceImpl implements PaiementServiceInterface {
 
+    private final ReservationMapper reservationMapper;
+
 
     private ReservationRepository reservationRepository;
     private PaiementRepository paiementRepository;
@@ -30,11 +36,12 @@ public class PaiementServiceImpl implements PaiementServiceInterface {
     
 
     public PaiementServiceImpl(VehiculeMappers vehiculeMappers, ReservationRepository reservationRepository,
-			PaiementRepository paiementRepository, PaiementMapper paiementMapper) {
+			PaiementRepository paiementRepository, PaiementMapper paiementMapper, ReservationMapper reservationMapper) {
 		super();
 		this.reservationRepository = reservationRepository;
 		this.paiementRepository = paiementRepository;
 		this.paiementMapper = paiementMapper;
+		this.reservationMapper = reservationMapper;
 	}
 
     
@@ -128,5 +135,12 @@ public class PaiementServiceImpl implements PaiementServiceInterface {
     }
 	
 	
+    @Override
+    public List<ReservationResponseDto> getReservationsByTrajet(UUID trajetId) {
+        return reservationRepository.findByTrajetId(trajetId)
+                .stream()
+                .map(reservationMapper::toDto)
+                .collect(Collectors.toList());
+    }
     
 }

@@ -6,10 +6,12 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 public class TrajetResponseDto {
+    
     private UUID id;
-    private String villeDepartNom;
-    private String villeArriveeNom;
-    private String vehiculeImmatriculation;
+    private VilleDto villeDepart;
+    private VilleDto villeArrivee;
+    private VehiculeDto vehicule;
+    private Long chauffeurId;         
     private Double distance;
     private String dureeEstimee;
     private Double tarif;
@@ -17,25 +19,37 @@ public class TrajetResponseDto {
     private LocalTime heureDepart;
     private StatutTrajet statut;
 
-    // Getters et Setters
+    // Getters & Setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
-    public String getVilleDepartNom() { return villeDepartNom; }
-    public void setVilleDepartNom(String villeDepartNom) { this.villeDepartNom = villeDepartNom; }
-    public String getVilleArriveeNom() { return villeArriveeNom; }
-    public void setVilleArriveeNom(String villeArriveeNom) { this.villeArriveeNom = villeArriveeNom; }
-    public String getVehiculeImmatriculation() { return vehiculeImmatriculation; }
-    public void setVehiculeImmatriculation(String vehiculeImmatriculation) { this.vehiculeImmatriculation = vehiculeImmatriculation; }
+
+    public VilleDto getVilleDepart() { return villeDepart; }
+    public void setVilleDepart(VilleDto villeDepart) { this.villeDepart = villeDepart; }
+
+    public VilleDto getVilleArrivee() { return villeArrivee; }
+    public void setVilleArrivee(VilleDto villeArrivee) { this.villeArrivee = villeArrivee; }
+
+    public VehiculeDto getVehicule() { return vehicule; }
+    public void setVehicule(VehiculeDto vehicule) { this.vehicule = vehicule; }
+
+    public Long getChauffeurId() { return chauffeurId; }
+    public void setChauffeurId(Long chauffeurId) { this.chauffeurId = chauffeurId; }
+
     public Double getDistance() { return distance; }
     public void setDistance(Double distance) { this.distance = distance; }
+
     public String getDureeEstimee() { return dureeEstimee; }
     public void setDureeEstimee(String dureeEstimee) { this.dureeEstimee = dureeEstimee; }
+
     public Double getTarif() { return tarif; }
     public void setTarif(Double tarif) { this.tarif = tarif; }
+
     public LocalDate getDateDepart() { return dateDepart; }
     public void setDateDepart(LocalDate dateDepart) { this.dateDepart = dateDepart; }
+
     public LocalTime getHeureDepart() { return heureDepart; }
     public void setHeureDepart(LocalTime heureDepart) { this.heureDepart = heureDepart; }
+
     public StatutTrajet getStatut() { return statut; }
     public void setStatut(StatutTrajet statut) { this.statut = statut; }
 }

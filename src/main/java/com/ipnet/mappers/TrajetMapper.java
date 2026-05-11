@@ -1,36 +1,54 @@
 package com.ipnet.mappers;
 
 import com.ipnet.dto.TrajetResponseDto;
+import com.ipnet.dto.VehiculeDto;
+import com.ipnet.dto.VilleDto;
 import com.ipnet.entity.TrajetEntity;
+import com.ipnet.entity.VehiculeEntity;
+import com.ipnet.entity.VilleEntity;
+
 import org.springframework.stereotype.Component;
 
 @Component
 public class TrajetMapper {
 
     public TrajetResponseDto toResponse(TrajetEntity entity) {
-        if (entity == null) return null;
+        TrajetResponseDto dto = new TrajetResponseDto();
+        dto.setId(entity.getId());
+        dto.setVilleDepart(toVilleDto(entity.getVilleDepart()));
+        dto.setVilleArrivee(toVilleDto(entity.getVilleArrivee()));
+        dto.setVehicule(toVehiculeDto(entity.getVehicule()));
+        dto.setDistance(entity.getDistance());
+        dto.setDureeEstimee(entity.getDureeEstimee());
+        dto.setTarif(entity.getTarif());
+        dto.setDateDepart(entity.getDateDepart());
+        dto.setHeureDepart(entity.getHeureDepart());
+        dto.setStatut(entity.getStatut());
 
-        TrajetResponseDto response = new TrajetResponseDto();
-        response.setId(entity.getId());
-        
-        // Extraction des noms depuis les entités liées
-        if (entity.getVilleDepart() != null) {
-            response.setVilleDepartNom(entity.getVilleDepart().getNomVille());
+        // ChauffeurId
+        if (entity.getChauffeur() != null) {
+            dto.setChauffeurId(entity.getChauffeur().getId());
         }
-        if (entity.getVilleArrivee() != null) {
-            response.setVilleArriveeNom(entity.getVilleArrivee().getNomVille());
-        }
-        if (entity.getVehicule() != null) {
-            response.setVehiculeImmatriculation(entity.getVehicule().getImmatriculation());
-        }
+        return dto;
+    }
 
-        response.setDistance(entity.getDistance());
-        response.setDureeEstimee(entity.getDureeEstimee());
-        response.setTarif(entity.getTarif());
-        response.setDateDepart(entity.getDateDepart());
-        response.setHeureDepart(entity.getHeureDepart());
-        response.setStatut(entity.getStatut());
+    private VilleDto toVilleDto(VilleEntity entity) {
+        VilleDto dto = new VilleDto();
+        dto.setId(entity.getId());
+        dto.setNomVille(entity.getNomVille());
+        dto.setRegion(entity.getRegion());
+        return dto;
+    }
 
-        return response;
+    private VehiculeDto toVehiculeDto(VehiculeEntity entity) {
+        VehiculeDto dto = new VehiculeDto();
+        dto.setId(entity.getId());
+        dto.setMarque(entity.getMarque());
+        dto.setModele(entity.getModele());
+        dto.setImmatriculation(entity.getImmatriculation());
+        dto.setCapacite(entity.getCapacite());
+        dto.setStatut(entity.getStatut());
+        dto.setImage(entity.getImage());
+        return dto;
     }
 }

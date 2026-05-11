@@ -5,8 +5,10 @@ import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ipnet.enums.StatutBillet;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -21,9 +23,13 @@ public class BilletEntity {
     private StatutBillet statut;
     private LocalDateTime dateEmission;
     private String nomPassager;
+    
+    @Column(name = "numero_siege")
+    private String numeroSiege;
 
     @ManyToOne
     @JoinColumn(name = "reservation_id")
+    @JsonIgnore
     private Reservation reservation;
 
 	public UUID getId() {
@@ -73,8 +79,10 @@ public class BilletEntity {
 	public void setNomPassager(String nomPassager) {
 		this.nomPassager = nomPassager;
 	}
-    
+   
+	public String getNumeroSiege() { return numeroSiege; }
 	
-    
+    public void setNumeroSiege(String numeroSiege) { this.numeroSiege = numeroSiege; }
+
     
 }

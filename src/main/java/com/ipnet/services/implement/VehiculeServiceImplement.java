@@ -3,11 +3,13 @@ package com.ipnet.services.implement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.ipnet.dto.VehiculeDto;
 import com.ipnet.entity.VehiculeEntity;
+import com.ipnet.enums.StatutVehicule;
 import com.ipnet.mappers.VehiculeMappers;
 import com.ipnet.repository.VehiculeRepository;
 import com.ipnet.services.interfaces.VehiculeServiceInterface;
@@ -90,7 +92,12 @@ public class VehiculeServiceImplement implements VehiculeServiceInterface{
 	}
 	
 	
-	
-	
+	@Override
+    public List<VehiculeDto> ListevehiculeDisponible() {
+        List<VehiculeEntity> disponibles = vehiculeRepository.findByStatut(StatutVehicule.Disponible);
+        return disponibles.stream()
+                .map(vehiculeMappers::toDto)
+                .collect(Collectors.toList());
+    }	
 
 }

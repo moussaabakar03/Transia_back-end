@@ -47,4 +47,15 @@ public class ReservationController {
             @RequestBody ReservationRequestDto dto) { 
         return ResponseEntity.ok(reservationService.modifierReservation(id, dto));
     }
+    
+    @GetMapping("/trajet/{trajetId}/liste")
+    public List<ReservationResponseDto> getReservationsByTrajet(@PathVariable UUID trajetId) {
+        return reservationService.getReservationsByTrajet(trajetId);
+    }
+    
+    @GetMapping("/trajet/{trajetId}/sieges-occupes")
+    public List<String> getOccupiedSeats(@PathVariable UUID trajetId) {
+        return reservationService.getOccupiedSeats(trajetId);
+    }
+    
 }

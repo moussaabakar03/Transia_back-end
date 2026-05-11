@@ -14,6 +14,7 @@ public class VehiculeMappers {
 		
 		vehiculeEntity.setId(vehiculeDto.getId());
 		vehiculeEntity.setMarque(vehiculeDto.getMarque());
+		vehiculeEntity.setModele(vehiculeDto.getModele());
 		vehiculeEntity.setImmatriculation(vehiculeDto.getImmatriculation());
 		vehiculeEntity.setCapacite(vehiculeDto.getCapacite());
 		vehiculeEntity.setStatut(vehiculeDto.getStatut());
@@ -28,6 +29,7 @@ public class VehiculeMappers {
 		
 		vehiculeDto.setId(vehiculeEntity.getId());
 		vehiculeDto.setMarque(vehiculeEntity.getMarque());
+		vehiculeDto.setModele(vehiculeEntity.getModele());
 		vehiculeDto.setImmatriculation(vehiculeEntity.getImmatriculation());
 		vehiculeDto.setCapacite(vehiculeEntity.getCapacite());
 		vehiculeDto.setStatut(vehiculeEntity.getStatut());

@@ -33,12 +33,12 @@ public class VehiculeController {
 		return vehiculeService.create(vehiculeDto);
 	}
 
-	@PutMapping
+	@PutMapping("/{id}")
 	public VehiculeDto update(@RequestBody VehiculeDto vehiculeDto, @PathVariable UUID id) {
 		return vehiculeService.update(vehiculeDto, id);
 	}
 
-	@DeleteMapping
+	@DeleteMapping("/{id}")
 	public void delete(@PathVariable UUID id) {
 		vehiculeService.delete(id);
 	}
@@ -52,5 +52,10 @@ public class VehiculeController {
 	public List<VehiculeDto> listeVehicule() {
 		return vehiculeService.listeVehicule();
 	}
+	
+	 @GetMapping("/disponible")
+    public List<VehiculeDto> listeVehiculesDisponibles() {
+        return vehiculeService.ListevehiculeDisponible();
+    }
 
 }

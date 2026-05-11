@@ -19,6 +19,7 @@ import com.ipnet.security.enums.UserRole;
 import com.ipnet.security.jwt.JwtUtils;
 import com.ipnet.security.mappers.UserMapper;
 import com.ipnet.security.model.History;
+import com.ipnet.security.model.Role;
 import com.ipnet.security.model.User;
 import com.ipnet.security.repository.HistoryRepository;
 import com.ipnet.security.repository.RoleRepository;
@@ -246,8 +247,29 @@ public class UserServiceImpl implements UserService {
         history.setDateHistory(new Date());
 
         return historyRepository.save(history);
-        
+   
    
     }
   
+    private UserRoleReponse toUserRoleResponse(User user) {
+        UserRoleReponse dto = new UserRoleReponse();
+        dto.setId(user.getId());
+        dto.setFullName(user.getNom());
+        dto.setUsername(user.getUsername());
+        // Copiez les autres champs nécessaires pour l'affichage côté front
+        return dto;
+    }
+    
+   
+    @Override
+    public List<UserRoleReponse> getChauffeurs() {
+        return userRepository.findAllByRole_Name(UserRole.CHAUFFEUR) 
+                .stream()
+                .map(this::toUserRoleResponse)
+                .collect(Collectors.toList());
+    }
+  
+    
+    
+    
 }

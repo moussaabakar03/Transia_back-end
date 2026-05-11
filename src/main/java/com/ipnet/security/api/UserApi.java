@@ -22,11 +22,9 @@ import java.util.UUID;
 public class UserApi {
 
     private final UserService userService;
-    private final UserRepository userRepository;
 
     public UserApi(UserService userService, UserRepository userRepository) {
         this.userService = userService;
-        this.userRepository = userRepository;
     }
 
     @PostMapping("/login")
@@ -74,7 +72,7 @@ public class UserApi {
     }
 
     @PostMapping("/users")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    //@PreAuthorize("hasAnyRole('ADMIN')")
     @Operation(
             description = "Ce point de terminaison ne nécessite pas de JWT valide",
             summary = "Save new user",
@@ -154,7 +152,7 @@ public class UserApi {
     }
 
     @PutMapping("/users/change_password/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','DISPENSATEUR','MENTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','AGENT_ACCUEIL')")
     @Operation(
             description = "Ce point de terminaison ne nécessite pas de JWT valide",
             summary = "Change password a user by Id",
@@ -214,5 +212,12 @@ public class UserApi {
         return ResponseEntity.status(204).build();
     }
 
+   
+    @GetMapping("/utilisateur/chauffeurs")
+    public List<UserRoleReponse> getChauffeurs() {
+        return userService.getChauffeurs();
+    }
+    
+    
 
 }

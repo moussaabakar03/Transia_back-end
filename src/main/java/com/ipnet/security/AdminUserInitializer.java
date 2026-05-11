@@ -59,6 +59,6 @@ public class AdminUserInitializer implements CommandLineRunner {
 
         System.out.println(">>> Admin créé avec succès (username: ATTA / password: Esso)");
     }
-}*/
-
+}
+*/
 
