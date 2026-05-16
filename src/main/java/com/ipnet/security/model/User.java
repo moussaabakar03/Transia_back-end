@@ -40,6 +40,10 @@ public class User extends BaseEntity implements Serializable {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
     
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Profil profil;
+
+   
     public User() {
     }
 
@@ -101,4 +105,8 @@ public class User extends BaseEntity implements Serializable {
     }
 
 	
+    public Profil getProfil() { return profil; }
+    public void setProfil(Profil profil) { this.profil = profil; }
+    
+    
 }

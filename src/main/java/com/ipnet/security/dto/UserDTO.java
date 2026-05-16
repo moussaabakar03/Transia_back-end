@@ -11,7 +11,10 @@ public class UserDTO {
     private String fullName;
     private String username;
     private String password;
+    //private String roles;
     private Role roles;
+    //private String roleName;   // était "private Role roles;"
+
     private boolean enable;
     private UUID publicId;
 
@@ -58,7 +61,10 @@ public class UserDTO {
     public void setRoles(Role roles) {
         this.roles = roles;
     }
-
+    /*
+    public String getRoleName() { return roleName; }
+    public void setRoleName(String roleName) { this.roleName = roleName; }
+    */
     public boolean isEnable() {
         return enable;
     }

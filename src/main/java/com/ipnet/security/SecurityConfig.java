@@ -2,6 +2,7 @@ package com.ipnet.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -46,8 +47,10 @@ public class SecurityConfig {
                 })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/api/v1/login", "/error", "/csrf", "/resources/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/import/**", "/etats/**", "/datasource/**", "api/v1/users", "/api/roles")
+                        .requestMatchers("/","/api/v1/login", "/error", "/csrf", "/resources/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/import/**", "/etats/**", "/datasource/**", "api/v1/users",  "/api/v1/users/**", "/api/roles")
                         .permitAll()
+                      
+                     
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
