@@ -19,9 +19,11 @@ import com.ipnet.security.enums.UserRole;
 import com.ipnet.security.jwt.JwtUtils;
 import com.ipnet.security.mappers.UserMapper;
 import com.ipnet.security.model.History;
+import com.ipnet.security.model.Profil;
 import com.ipnet.security.model.Role;
 import com.ipnet.security.model.User;
 import com.ipnet.security.repository.HistoryRepository;
+import com.ipnet.security.repository.ProfilRepository;
 import com.ipnet.security.repository.RoleRepository;
 import com.ipnet.security.repository.UserRepository;
 
@@ -42,9 +44,10 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final HistoryRepository historyRepository;
     private final RoleRepository roleRepository;
+    private final ProfilRepository profilRepository;
     
 
-    public UserServiceImpl(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository, UserMapper userMapper, HistoryRepository historyRepository, RoleRepository roleRepository) {
+    public UserServiceImpl(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository, UserMapper userMapper, HistoryRepository historyRepository, RoleRepository roleRepository, ProfilRepository profilRepository) {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
@@ -52,6 +55,7 @@ public class UserServiceImpl implements UserService {
         this.userMapper = userMapper;
         this.historyRepository = historyRepository;
         this.roleRepository = roleRepository;
+        this.profilRepository = profilRepository;
     }
 
     @Override
@@ -111,7 +115,7 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public UserDTO saveUser(UserDTO userDTO) {
-        checkIfUserExists(userDTO);
+        //checkIfUserExists(userDTO);
 
         User user = userMapper.mapToUser(userDTO);
 
@@ -122,9 +126,20 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         user.setRole(userDTO.getRoles());
+        
+        /*Role role = roleRepository.findByName(userDTO.getRoles())
+                .orElseThrow(() -> new ResourceNotFoundException("Rôle introuvable : " + userDTO.getRoles()));
+        
+        user.setRole(role);*/
 
+        
         // Sauvegarder l'utilisateur
         User savedUser = userRepository.save(user);
+        
+        Profil profil = new Profil();
+        profil.setUser(savedUser);
+        profil.setNomComplet(userDTO.getFullName());
+        profilRepository.save(profil);
 
         // Créer l'historique après sauvegarde
         History history = new History();
@@ -166,6 +181,12 @@ public class UserServiceImpl implements UserService {
         user.setUsername(userDTO.getUsername());
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setRole(userDTO.getRoles());
+        
+        /*Role role = roleRepository.findByName(userDTO.getRoles())
+                .orElseThrow(() -> new ResourceNotFoundException("Rôle introuvable : " + userDTO.getRoles()));
+      
+        
+        user.setRole(role);*/
 
         Optional<User> userHistory = userRepository.findByPublicId(userDTO.getPublicId());
         History history = new History();
@@ -233,11 +254,12 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    /*
     private void checkIfUserExists(UserDTO userDTO){
         if(userRepository.existsByUsername(userDTO.getUsername())) {
             throw new AlreadyExistException(String.format("Ce nom existe déjà !!!", userDTO.getUsername()));
         }
-    }
+    }*/
 
     private History createHistory(UUID userId) {
         User user = userRepository.findByPublicId(userId).get();

@@ -2,8 +2,10 @@ package com.ipnet.services.implement;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -91,8 +93,9 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
             billet.setStatut(StatutBillet.EN_ATTENTE);
 
 
-            String infoQr = String.format("ID:%s|NOM:%s|TRAJET:%s|DATE:%s|STATUT:%s",
+            String infoQr = String.format("ID:%s|SIEGE:%s|NOM:%s|TRAJET:%s|DATE:%s|STATUT:%s",
                 UUID.randomUUID().toString().substring(0, 8), 
+                billet.getNumeroSiege(),
                 nomPassager,
                 savedRes.getTrajet().getVilleDepart().getNomVille() + "-" + savedRes.getTrajet().getVilleArrivee().getNomVille(),
                 savedRes.getTrajet().getHeureDepart().toString(),
@@ -206,8 +209,9 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
 
             billet.setNomPassager(nomPassager);
             
-            String infoQr = String.format("ID:%s|NOM:%s|TRAJET:%s|DATE:%s|STATUT:%s",
+            String infoQr = String.format("ID:%s|SIEGE:%s|NOM:%s|TRAJET:%s|DATE:%s|STATUT:%s",
                     UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
+                    billet.getNumeroSiege(),
                     nomPassager,
                     res.getTrajet().getVilleDepart().getNomVille() + "-" + res.getTrajet().getVilleArrivee().getNomVille(),
                     res.getTrajet().getHeureDepart().toString(),
@@ -236,48 +240,65 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
     }
     
     
-    private void assignerSieges(List<BilletEntity> billets, List<String> siegesChoisis, 
+    private void assignerSieges(List<BilletEntity> billets, List<String> siegesChoisis,
             TrajetEntity trajet, boolean isModification, Reservation existingRes) {
-    	
-		if (siegesChoisis == null || siegesChoisis.isEmpty()) {
-			// Aucun siège demandé → on laisse null (attribution automatique)
-			return;
-		}
-		
 		int capacite = trajet.getVehicule().getCapacite();
 		
-		// Récupérer les sièges déjà occupés (en excluant les billets de la réservation en cours si modification)
+		// Récupérer tous les sièges déjà occupés pour ce trajet
 		List<String> occupes = billetRepository.findOccupiedSeatsByTrajetId(trajet.getId());
 		if (isModification && existingRes != null && existingRes.getBillets() != null) {
-			// Retirer les sièges de l'ancienne réservation (ils vont être remplacés)
+			// En modification, on retire les sièges de l'ancienne réservation
 			existingRes.getBillets().stream()
 			.map(BilletEntity::getNumeroSiege)
 			.filter(Objects::nonNull)
 			.forEach(occupes::remove);
 		}
 		
-		// Vérifier chaque siège choisi
-		for (String siege : siegesChoisis) {
-		// Optionnel : valider le format (ex: entier 1..capacite, ou format "1A")
-			try {
-				int num = Integer.parseInt(siege); // si vos sièges sont des nombres
-				if (num < 1 || num > capacite) {
-				throw new RuntimeException("Siège invalide : " + siege);
+		// Ensemble des sièges déjà attribués dans la même réservation (pour éviter les doublons)
+		Set<String> alreadyAssigned = new HashSet<>();
+		
+		// Attribution des sièges choisis par l'utilisateur
+		if (siegesChoisis != null && !siegesChoisis.isEmpty()) {
+			for (int i = 0; i < billets.size() && i < siegesChoisis.size(); i++) {
+				String siege = siegesChoisis.get(i);
+				// Validation basique : siège numérique entre 1 et la capacité
+				try {
+					int num = Integer.parseInt(siege);
+					if (num < 1 || num > capacite) {
+					   throw new RuntimeException("Siège invalide : " + siege);
+					}
+				} catch (NumberFormatException e) {
+					throw new RuntimeException("Format de siège invalide : " + siege);
 				}
-			} catch (NumberFormatException e) {
-			// Si format alphanumérique, vous pouvez définir une autre validation
-			}
-			
-			if (occupes.contains(siege)) {
-				throw new RuntimeException("Le siège " + siege + " est déjà occupé.");
+				if (occupes.contains(siege) || alreadyAssigned.contains(siege)) {
+					throw new RuntimeException("Le siège " + siege + " est déjà occupé.");
+				}
+				billets.get(i).setNumeroSiege(siege);
+				alreadyAssigned.add(siege);
 			}
 		}
 		
-		// Si tout est bon, attribuer les sièges dans l'ordre de la liste
-		for (int i = 0; i < billets.size() && i < siegesChoisis.size(); i++) {
-			billets.get(i).setNumeroSiege(siegesChoisis.get(i));
+		// Pour les billets restants (sans siège), attribution aléatoire automatique
+		for (BilletEntity billet : billets) {
+			if (billet.getNumeroSiege() != null) continue; // déjà traité
+			
+			// Collecter les sièges libres (non occupés et non déjà attribués dans cette réservation)
+			List<Integer> disponibles = new ArrayList<>();
+			for (int i = 1; i <= capacite; i++) {
+				String siegeCandidate = String.valueOf(i);
+				if (!occupes.contains(siegeCandidate) && !alreadyAssigned.contains(siegeCandidate)) {
+					disponibles.add(i);
+				}
+			}
+			if (disponibles.isEmpty()) {
+				throw new RuntimeException("Aucun siège disponible pour ce trajet.");
+			}
+			// Choisir aléatoirement un siège parmi les disponibles
+			int randomIndex = (int) (Math.random() * disponibles.size());
+			String siegeAttribue = String.valueOf(disponibles.get(randomIndex));
+			billet.setNumeroSiege(siegeAttribue);
+			alreadyAssigned.add(siegeAttribue);
 		}
-		// Si la liste de sièges est plus courte que le nombre de billets, les derniers n'auront pas de siège (automatique)
 	}
     
     
