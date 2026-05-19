@@ -111,24 +111,30 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
     }
     
 
-    @Override
-    @Transactional
-    public void annulerReservation(UUID id) {
-        Reservation res = reservationRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Réservation introuvable"));
-        
-        // Seules les réservations non encore terminées peuvent être annulées
-        if (res.getStatut() == StatutReservation.EN_ATTENTE || res.getStatut() == StatutReservation.CONFIRMEE) {
-            res.setStatut(StatutReservation.ANNULEE);
-            // On invalide les billets associés
-            if(res.getBillets() != null) {
-                res.getBillets().forEach(b -> b.setStatut(StatutBillet.ANNULE));
+        @Override
+        @Transactional
+        public void annulerReservation(UUID id) {
+            Reservation reservation = reservationRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Réservation introuvable."));
+
+            String statutReservation = reservation.getStatut() != null
+                    ? reservation.getStatut().name()
+                    : "";
+
+            if (!"EN_ATTENTE".equalsIgnoreCase(statutReservation)) {
+                throw new RuntimeException(
+                        "Seules les réservations non payées peuvent être annulées."
+                );
             }
-            reservationRepository.save(res);
-        } else {
-            throw new RuntimeException("Impossible d'annuler une réservation déjà " + res.getStatut());
+
+            reservation.setStatut(StatutReservation.ANNULEE);
+
+            if (reservation.getBillets() != null) {
+                reservation.getBillets().forEach(billet -> billet.setStatut(StatutBillet.ANNULE));
+            }
+
+            reservationRepository.save(reservation);
         }
-    }
 
     @Override
     @Transactional

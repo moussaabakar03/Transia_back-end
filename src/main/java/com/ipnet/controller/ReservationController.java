@@ -6,7 +6,9 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.ipnet.dto.*;
+
+import com.ipnet.dto.ReservationRequestDto;
+import com.ipnet.dto.ReservationResponseDto;
 import com.ipnet.services.interfaces.ReservationServiceInterface;
 
 @RestController
@@ -21,7 +23,8 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<ReservationResponseDto> create(@RequestBody ReservationRequestDto requestDto) {
+    public ResponseEntity<ReservationResponseDto> create(
+            @RequestBody ReservationRequestDto requestDto) {
         return new ResponseEntity<>(reservationService.create(requestDto), HttpStatus.CREATED);
     }
 
@@ -29,33 +32,37 @@ public class ReservationController {
     public ResponseEntity<ReservationResponseDto> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(reservationService.getById(id));
     }
-    
+
     @GetMapping("/trajet/{trajetId}")
     public Integer nombrePlaceTrajet(@PathVariable UUID trajetId) {
-    	return reservationService.nombrePlaceTrajet(trajetId);
+        return reservationService.nombrePlaceTrajet(trajetId);
     }
-    
-    
+
     @GetMapping
-	public List<ReservationResponseDto> listeVehicule() {
-		return reservationService.listeReservations();
-	}
-    
+    public List<ReservationResponseDto> listeVehicule() {
+        return reservationService.listeReservations();
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ReservationResponseDto> modifier(
-            @PathVariable UUID id, 
-            @RequestBody ReservationRequestDto dto) { 
+            @PathVariable UUID id,
+            @RequestBody ReservationRequestDto dto) {
         return ResponseEntity.ok(reservationService.modifierReservation(id, dto));
     }
-    
+
     @GetMapping("/trajet/{trajetId}/liste")
     public List<ReservationResponseDto> getReservationsByTrajet(@PathVariable UUID trajetId) {
         return reservationService.getReservationsByTrajet(trajetId);
     }
-    
+
     @GetMapping("/trajet/{trajetId}/sieges-occupes")
     public List<String> getOccupiedSeats(@PathVariable UUID trajetId) {
         return reservationService.getOccupiedSeats(trajetId);
     }
-    
+
+    @PatchMapping("/{id}/annuler")
+    public ResponseEntity<String> annulerReservation(@PathVariable UUID id) {
+        reservationService.annulerReservation(id);
+        return ResponseEntity.ok("Réservation annulée avec succès.");
+    }
 }
