@@ -2,15 +2,15 @@ package com.ipnet.security.dto;
 
 
 public class LoginDTO {
-    private String username;
+    private String telephone;
     private String password;
 
-    public String getUsername() {
-        return username;
+    public String getTelephone() {
+        return telephone;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
     }
 
     public String getPassword() {

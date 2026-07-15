@@ -1,8 +1,10 @@
 package com.ipnet.security.enums;
 
 public enum UserRole {
-    ADMIN,
+    SUPER_ADMIN,
+    ADMIN_AGENCE,
     AGENT_ACCUEIL,
     CLIENT,
-    CHAUFFEUR
+    CHAUFFEUR,
+    LIVREUR
 }

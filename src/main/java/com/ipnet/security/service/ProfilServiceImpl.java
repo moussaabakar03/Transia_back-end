@@ -1,5 +1,6 @@
 package com.ipnet.security.service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -17,8 +18,7 @@ public class ProfilServiceImpl implements ProfilService {
 
     private final ProfilRepository profilRepository;
     private final ProfilMapper profilMapper;
-    private final UserRepository userRepository;   
-
+    private final UserRepository userRepository;
 
     public ProfilServiceImpl(ProfilRepository profilRepository, ProfilMapper profilMapper, UserRepository userRepository) {
         this.profilRepository = profilRepository;
@@ -42,8 +42,7 @@ public class ProfilServiceImpl implements ProfilService {
         Profil saved = profilRepository.save(profil);
         return profilMapper.toDto(saved);
     }
-    
-    
+
     @Override
     public ProfilDTO getProfilByPublicId(UUID publicId) {
         User user = userRepository.findByPublicId(publicId)
@@ -63,5 +62,33 @@ public class ProfilServiceImpl implements ProfilService {
         profilMapper.updateEntity(profil, dto);
         Profil saved = profilRepository.save(profil);
         return profilMapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public ProfilDTO createProfil(ProfilDTO dto) {
+        // Vérifier que l'utilisateur existe
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'ID " + dto.getUserId()));
+
+        // Vérifier que l'utilisateur n'a pas déjà un profil
+        if (profilRepository.findByUserId(dto.getUserId()).isPresent()) {
+            throw new RuntimeException("Un profil existe déjà pour cet utilisateur");
+        }
+
+        Profil profil = new Profil();
+        profil.setUser(user);
+        profil.setPhotoProfil(dto.getPhotoProfil());
+        profil.setAdresse(dto.getAdresse());
+
+        Profil saved = profilRepository.save(profil);
+        return profilMapper.toDto(saved);
+    }
+
+    @Override
+    public Optional<ProfilDTO> findByUserId(Long userId) {
+        // Implémentation correcte
+        return profilRepository.findByUserId(userId)
+                .map(profilMapper::toDto);
     }
 }

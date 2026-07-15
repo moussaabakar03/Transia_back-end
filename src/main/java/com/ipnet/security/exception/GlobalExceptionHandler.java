@@ -20,6 +20,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public final ResponseEntity<ErrorMessage> handleIllegalArgument(Exception ex, WebRequest request) {
+        ErrorMessage response = new ErrorMessage(HttpStatus.BAD_REQUEST.value(),new Date(), ex.getMessage(),
+                request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public final ResponseEntity<ErrorMessage> handleResourceNotFound(Exception ex, WebRequest request)  {
         ErrorMessage response = new ErrorMessage(HttpStatus.NOT_FOUND.value(),new Date(), ex.getMessage(),

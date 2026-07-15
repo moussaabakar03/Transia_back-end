@@ -1,11 +1,17 @@
 package com.ipnet.security.model;
 
+import com.ipnet.entity.AgenceEntity;
+import com.ipnet.entity.VilleEntity;
+import com.ipnet.security.enums.StatutCompte;
+import com.ipnet.security.enums.StatutOperationnel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 import com.ipnet.utils.BaseEntity;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -25,25 +31,48 @@ public class User extends BaseEntity implements Serializable {
     @Column(name = "nom",nullable = false)
     private String nom;
 
-    @Column(name = "username",nullable = false)
-    private String username;
+    @Column(name = "telephone", nullable = false, unique = true)
+    private String telephone;
+
+    @Column(name = "email", unique = true)
+    private String email;
 
     @Column(name = "password",nullable = false)
     private String password;
 
-    @Column(name = "enable",nullable = false)
-    private boolean enable;
-    
-    
-    // Relation Many-to-One vers Role
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
-    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "statut_compte", nullable = false)
+    private StatutCompte statutCompte = StatutCompte.ACTIF;
+
+    // Un utilisateur peut cumuler plusieurs rôles (ex : CHAUFFEUR + LIVREUR)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Profil profil;
 
-   
+    // null pour SUPER_ADMIN (vue globale), renseigné pour ADMIN_AGENCE, AGENT_ACCUEIL, CHAUFFEUR, LIVREUR
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "agence_id", nullable = true)
+    private AgenceEntity agence;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ville_base_id", nullable = true)
+    private VilleEntity villeBase;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ville_actuelle_id", nullable = true)
+    private VilleEntity villeActuelle;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "statut_operationnel")
+    private StatutOperationnel statutOperationnel;
+
     public User() {
     }
 
@@ -71,12 +100,20 @@ public class User extends BaseEntity implements Serializable {
         this.nom = nom;
     }
 
-    public String getUsername() {
-        return username;
+    public String getTelephone() {
+        return telephone;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {
@@ -87,26 +124,34 @@ public class User extends BaseEntity implements Serializable {
         this.password = password;
     }
 
-    public boolean isEnable() {
-        return enable;
+    public StatutCompte getStatutCompte() {
+        return statutCompte;
     }
 
-    public void setEnable(boolean enable) {
-        this.enable = enable;
+    public void setStatutCompte(StatutCompte statutCompte) {
+        this.statutCompte = statutCompte;
     }
 
-  
-    public Role getRole() {
-        return role;
+    public Set<Role> getRoles() {
+        return roles;
     }
 
-    public void setRole(Role role) {
-        this.role = role;
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
-	
     public Profil getProfil() { return profil; }
     public void setProfil(Profil profil) { this.profil = profil; }
-    
-    
+
+    public AgenceEntity getAgence() { return agence; }
+    public void setAgence(AgenceEntity agence) { this.agence = agence; }
+
+    public VilleEntity getVilleBase() { return villeBase; }
+    public void setVilleBase(VilleEntity villeBase) { this.villeBase = villeBase; }
+
+    public VilleEntity getVilleActuelle() { return villeActuelle; }
+    public void setVilleActuelle(VilleEntity villeActuelle) { this.villeActuelle = villeActuelle; }
+
+    public StatutOperationnel getStatutOperationnel() { return statutOperationnel; }
+    public void setStatutOperationnel(StatutOperationnel statutOperationnel) { this.statutOperationnel = statutOperationnel; }
 }

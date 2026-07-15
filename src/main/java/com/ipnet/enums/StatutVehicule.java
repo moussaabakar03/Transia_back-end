@@ -1,8 +1,8 @@
 package com.ipnet.enums;
 
 public enum StatutVehicule {
-	Disponible,
-	En_Service,
-	En_maintenance,
-	Indisponible
+    DISPONIBLE,
+    EN_ROUTE,
+    EN_MAINTENANCE,
+    HORS_SERVICE
 }

@@ -13,7 +13,7 @@ import java.util.UUID;
 @Tag(name = "Gestion des roles de l'utilisateur", description = "CRUD sur role")
 @RestController
 @RequestMapping("/api/roles")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('SUPER_ADMIN')")
 public class RoleController {
 
     private final RoleService service;

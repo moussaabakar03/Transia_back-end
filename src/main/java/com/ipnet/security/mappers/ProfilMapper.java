@@ -14,16 +14,16 @@ public class ProfilMapper {
         dto.setId(entity.getId());
         dto.setUserId(entity.getUser().getId());
         dto.setPhotoProfil(entity.getPhotoProfil());
-        dto.setTelephone(entity.getTelephone());
-        dto.setNomComplet(entity.getNomComplet());
         dto.setAdresse(entity.getAdresse());
         return dto;
     }
 
     public void updateEntity(Profil entity, ProfilDTO dto) {
-        entity.setPhotoProfil(dto.getPhotoProfil());
-        entity.setTelephone(dto.getTelephone());
-        entity.setNomComplet(dto.getNomComplet());
-        entity.setAdresse(dto.getAdresse());
+        if (dto.getPhotoProfil() != null) {
+            entity.setPhotoProfil(dto.getPhotoProfil());
+        }
+        if (dto.getAdresse() != null) {
+            entity.setAdresse(dto.getAdresse());
+        }
     }
 }

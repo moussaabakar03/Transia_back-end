@@ -1,78 +1,83 @@
 package com.ipnet.security.dto;
 
-
 import java.util.Date;
-
-import com.ipnet.security.model.Role;
-
+import java.util.Set;
+import java.util.UUID;
+import com.ipnet.security.enums.StatutCompte;
+import com.ipnet.security.enums.StatutOperationnel;
 
 public class UserRoleReponse {
     private Long id;
+    private UUID publicId;
     private String fullName;
-    private String username;
+    private String telephone;
+    private String email;
     private Date createdAt;
-    private boolean enable;
-    private Role roles;
+    private StatutCompte statutCompte;
+    private Set<RoleDTO> roles;
+    private UUID agenceId;
+    private String agenceNom;
+    private String villeNom;
+    private UUID villeBaseId;
+    private String villeBaseNom;
+    private UUID villeActuelleId;
+    private String villeActuelleNom;
+    private StatutOperationnel statutOperationnel;
+    private String photoProfil;
 
-    public UserRoleReponse() {
-    }
+    public UserRoleReponse() {}
 
-    public UserRoleReponse(Long id, String fullName, String username, Date createdAt, boolean enable,
-                            Role roles) {
+    public UserRoleReponse(Long id, UUID publicId, String fullName, String telephone, Date createdAt, StatutCompte statutCompte, Set<RoleDTO> roles) {
         this.id = id;
+        this.publicId = publicId;
         this.fullName = fullName;
-        this.username = username;
+        this.telephone = telephone;
         this.createdAt = createdAt;
-        this.enable = enable;
+        this.statutCompte = statutCompte;
         this.roles = roles;
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public UUID getPublicId() { return publicId; }
+    public void setPublicId(UUID publicId) { this.publicId = publicId; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getTelephone() { return telephone; }
+    public void setTelephone(String telephone) { this.telephone = telephone; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public Date getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    public StatutCompte getStatutCompte() { return statutCompte; }
+    public void setStatutCompte(StatutCompte statutCompte) { this.statutCompte = statutCompte; }
+    public Set<RoleDTO> getRoles() { return roles; }
+    public void setRoles(Set<RoleDTO> roles) { this.roles = roles; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public UUID getAgenceId() { return agenceId; }
+    public void setAgenceId(UUID agenceId) { this.agenceId = agenceId; }
 
-    public String getFullName() {
-        return fullName;
-    }
+    public String getAgenceNom() { return agenceNom; }
+    public void setAgenceNom(String agenceNom) { this.agenceNom = agenceNom; }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+    public String getVilleNom() { return villeNom; }
+    public void setVilleNom(String villeNom) { this.villeNom = villeNom; }
 
-    public String getUsername() {
-        return username;
-    }
+    public UUID getVilleBaseId() { return villeBaseId; }
+    public void setVilleBaseId(UUID villeBaseId) { this.villeBaseId = villeBaseId; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public String getVilleBaseNom() { return villeBaseNom; }
+    public void setVilleBaseNom(String villeBaseNom) { this.villeBaseNom = villeBaseNom; }
 
-    public Date getCreatedAt() {
-        return createdAt;
-    }
+    public UUID getVilleActuelleId() { return villeActuelleId; }
+    public void setVilleActuelleId(UUID villeActuelleId) { this.villeActuelleId = villeActuelleId; }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
+    public String getVilleActuelleNom() { return villeActuelleNom; }
+    public void setVilleActuelleNom(String villeActuelleNom) { this.villeActuelleNom = villeActuelleNom; }
 
-    public boolean isEnable() {
-        return enable;
-    }
+    public StatutOperationnel getStatutOperationnel() { return statutOperationnel; }
+    public void setStatutOperationnel(StatutOperationnel s) { this.statutOperationnel = s; }
 
-    public void setEnable(boolean enable) {
-        this.enable = enable;
-    }
-
-  
-    public Role getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Role roles) {
-        this.roles = roles;
-    }
+    public String getPhotoProfil() { return photoProfil; }
+    public void setPhotoProfil(String photoProfil) { this.photoProfil = photoProfil; }
 }

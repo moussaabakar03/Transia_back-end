@@ -11,4 +11,5 @@ public interface TrajetService {
     List<TrajetResponseDto> listerTousLesTrajets();
     TrajetResponseDto obtenirTrajet(UUID id);
     void supprimerTrajet(UUID id);
+    TrajetResponseDto modifierTrajet(UUID id, TrajetRequestDto request);
 }

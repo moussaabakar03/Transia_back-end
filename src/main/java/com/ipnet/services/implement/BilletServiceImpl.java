@@ -1,0 +1,51 @@
+package com.ipnet.services.implement;
+
+import com.ipnet.dto.BilletDto;
+import com.ipnet.entity.BilletEntity;
+import com.ipnet.enums.StatutBillet;
+import com.ipnet.mappers.BilletMapper;
+import com.ipnet.repository.BilletRepository;
+import com.ipnet.security.exception.ResourceNotFoundException;
+import com.ipnet.services.interfaces.BilletServiceInterface;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class BilletServiceImpl implements BilletServiceInterface {
+
+    private final BilletRepository billetRepository;
+    private final BilletMapper billetMapper;
+
+    public BilletServiceImpl(BilletRepository billetRepository, BilletMapper billetMapper) {
+        this.billetRepository = billetRepository;
+        this.billetMapper = billetMapper;
+    }
+
+    @Override
+    @Transactional
+    public BilletDto validerBillet(String qrCode) {
+        BilletEntity billet = billetRepository.findByQrCode(qrCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Billet introuvable pour ce QR code"));
+
+        if (billet.getStatut() == StatutBillet.ANNULE) {
+            throw new RuntimeException("Ce billet est annulé");
+        }
+        if (billet.getStatut() == StatutBillet.UTILISE) {
+            throw new RuntimeException("Ce billet a déjà été utilisé");
+        }
+
+        billet.setStatut(StatutBillet.UTILISE);
+        return billetMapper.toDto(billetRepository.save(billet));
+    }
+
+    @Override
+    public List<BilletDto> getBilletsByTrajet(UUID trajetId) {
+        return billetRepository.findByReservation_Trajet_Id(trajetId)
+                .stream()
+                .map(billetMapper::toDto)
+                .toList();
+    }
+}

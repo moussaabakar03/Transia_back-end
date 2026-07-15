@@ -34,6 +34,11 @@ public class TrajetController {
         return trajetService.obtenirTrajet(id);
     }
 
+    @PutMapping("/{id}")
+    public TrajetResponseDto update(@PathVariable UUID id, @RequestBody TrajetRequestDto request) {
+        return trajetService.modifierTrajet(id, request);
+    }
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable UUID id) {
         trajetService.supprimerTrajet(id);

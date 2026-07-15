@@ -10,16 +10,25 @@ import com.ipnet.enums.StatutBillet;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "billet")
 public class BilletEntity {
     @Id
     @UuidGenerator
     private UUID id;
-    private String qrCode; // Identifiant unique pour le QR
+
+    @Column(name = "qr_code", columnDefinition = "TEXT")
+    private String qrCode;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "statut")
     private StatutBillet statut;
     private LocalDateTime dateEmission;
     private String nomPassager;

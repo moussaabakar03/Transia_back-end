@@ -14,7 +14,14 @@ public class BilletMapper {
         dto.setNomPassager(entity.getNomPassager());
         dto.setStatut(entity.getStatut());
         dto.setDateEmission(entity.getDateEmission());
-        dto.setNumeroSiege(entity.getNumeroSiege()); //
+        dto.setNumeroSiege(entity.getNumeroSiege());
+        if (entity.getReservation() != null) {
+            dto.setReservationId(entity.getReservation().getId());
+            var trajet = entity.getReservation().getTrajet();
+            if (trajet != null && trajet.getVilleDepart() != null && trajet.getVilleArrivee() != null) {
+                dto.setTrajetInfo(trajet.getVilleDepart().getNomVille() + " → " + trajet.getVilleArrivee().getNomVille());
+            }
+        }
         return dto;
     }
 }

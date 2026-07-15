@@ -4,15 +4,13 @@ public class PasswordDTO {
 
     private String currentPassword;
     private String newPassword;
-    private Long userId;
 
     public PasswordDTO() {
     }
 
-    public PasswordDTO(String currentPassword, String newPassword, Long userId) {
+    public PasswordDTO(String currentPassword, String newPassword) {
         this.currentPassword = currentPassword;
         this.newPassword = newPassword;
-        this.userId = userId;
     }
 
     public String getCurrentPassword() {
@@ -29,13 +27,5 @@ public class PasswordDTO {
 
     public void setNewPassword(String newPassword) {
         this.newPassword = newPassword;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
     }
 }

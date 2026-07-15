@@ -4,39 +4,43 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.ipnet.security.enums.StatutCompte;
 import com.ipnet.security.model.*;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class UserDetailsImpl implements UserDetails {
 
     private static final long serialVersionUID = 1L;
     private UUID id;
     private String fullName;
-    private String username;
+    private String telephone;
     @JsonIgnore
     private String password;
+    private StatutCompte statutCompte;
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(UUID id, String fullName, String username,  String password,
-                           Collection<? extends GrantedAuthority> authorities) {
+    public UserDetailsImpl(UUID id, String fullName, String telephone, String password,
+                            StatutCompte statutCompte, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.fullName = fullName;
-        this.username = username;
+        this.telephone = telephone;
         this.password = password;
+        this.statutCompte = statutCompte;
         this.authorities = authorities;
     }
 
     public static UserDetailsImpl build(User user) {
-        Collection<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
+        Collection<GrantedAuthority> authorities = user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+                .collect(Collectors.toList());
 
-
-        return new UserDetailsImpl(user.getPublicId(), user.getNom(), user.getUsername(), user.getPassword(), authorities);
+        return new UserDetailsImpl(user.getPublicId(), user.getNom(), user.getTelephone(),
+                user.getPassword(), user.getStatutCompte(), authorities);
     }
 
     @Override
@@ -53,11 +57,9 @@ public class UserDetailsImpl implements UserDetails {
         this.id = id;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
     }
-
-    
 
     public void setPassword(String password) {
         this.password = password;
@@ -83,7 +85,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return telephone;
     }
 
     @Override
@@ -93,7 +95,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return statutCompte != StatutCompte.BLOQUE;
     }
 
     @Override
@@ -103,7 +105,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return statutCompte == StatutCompte.ACTIF;
     }
 
     @Override

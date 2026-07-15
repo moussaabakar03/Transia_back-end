@@ -1,103 +1,112 @@
 package com.ipnet.services.implement;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ipnet.dto.VehiculeDto;
 import com.ipnet.entity.VehiculeEntity;
+import com.ipnet.entity.VilleEntity;
 import com.ipnet.enums.StatutVehicule;
 import com.ipnet.mappers.VehiculeMappers;
 import com.ipnet.repository.VehiculeRepository;
+import com.ipnet.repository.VilleRepository;
+import com.ipnet.security.exception.ResourceNotFoundException;
 import com.ipnet.services.interfaces.VehiculeServiceInterface;
 
 @Service
-public class VehiculeServiceImplement implements VehiculeServiceInterface{
+@Transactional
+public class VehiculeServiceImplement implements VehiculeServiceInterface {
 
-	private VehiculeRepository vehiculeRepository;
-	private VehiculeMappers vehiculeMappers;
+    private final VehiculeRepository vehiculeRepository;
+    private final VehiculeMappers vehiculeMappers;
+    private final VilleRepository villeRepository;
 
+    public VehiculeServiceImplement(VehiculeRepository vehiculeRepository,
+            VehiculeMappers vehiculeMappers, VilleRepository villeRepository) {
+        this.vehiculeRepository = vehiculeRepository;
+        this.vehiculeMappers = vehiculeMappers;
+        this.villeRepository = villeRepository;
+    }
 
-	public VehiculeServiceImplement(VehiculeRepository vehiculeRepository, VehiculeMappers vehiculeMappers) {
-		super();
-		this.vehiculeRepository = vehiculeRepository;
-		this.vehiculeMappers = vehiculeMappers;
-	}
+    @Override
+    public VehiculeDto create(VehiculeDto dto) {
+        VehiculeEntity e = vehiculeMappers.toEntity(dto);
+        resolveVilles(e, dto);
+        return vehiculeMappers.toDto(vehiculeRepository.save(e));
+    }
 
-	@Override
-	public VehiculeDto create(VehiculeDto vehiculeDto) {
-		VehiculeEntity vehiculeEntity = vehiculeMappers.toEntity(vehiculeDto);		
-		
-		VehiculeEntity vehiculeSave = vehiculeRepository.save(vehiculeEntity);
-		
-		return vehiculeMappers.toDto(vehiculeSave);
-	}
+    @Override
+    public VehiculeDto update(VehiculeDto dto, UUID id) {
+        VehiculeEntity e = vehiculeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule introuvable : " + id));
 
-	/*@Override
-		public VehiculeDto update(VehiculeDto vehiculeDto, Long id) {
-		
-		VehiculeEntity rechercheVehicule = vehiculeRepository.findById(id).orElseThrow(() -> new RuntimeException("Vehicule non trouvé"));
-		VehiculeEntity vehicule = vehiculeMappers.toEntity(vehiculeDto);
-		VehiculeEntity vehiculeSave = vehiculeRepository.save(vehicule);
-		
-		return vehiculeMappers.toDto(vehiculeSave);
-	}*/
+        e.setMarque(dto.getMarque());
+        e.setModele(dto.getModele());
+        e.setImmatriculation(dto.getImmatriculation());
+        e.setCapacite(dto.getCapacite());
+        e.setCapaciteSoute(dto.getCapaciteSoute());
+        e.setStatut(dto.getStatut());
+        e.setImage(dto.getImage());
+        resolveVilles(e, dto);
 
-	@Override
-	public VehiculeDto update(VehiculeDto vehiculeDto, UUID id) {
-	    // 1. Vérifier que le véhicule existe
-	    if (!vehiculeRepository.existsById(id)) {
-	        throw new RuntimeException("Vehicule non trouvé avec l'id : " + id);
-	    }
-	    
-	    // 2. Convertir le DTO en entité
-	    VehiculeEntity vehicule = vehiculeMappers.toEntity(vehiculeDto);
-	    
-	    // 3. Forcer l'ID pour être sûr de faire un "Update" et non un "Create"
-	    //vehicule.setId(id.longValue()); // Attention : ton entité utilise 'int id' et le DTO 'Long id'
-	    vehicule.setId(id); // Attention : ton entité utilise 'int id' et le DTO 'Long id'
+        return vehiculeMappers.toDto(vehiculeRepository.save(e));
+    }
 
-	    VehiculeEntity vehiculeSave = vehiculeRepository.save(vehicule);
-	    return vehiculeMappers.toDto(vehiculeSave);
-	}
+    @Override
+    public void delete(UUID id) {
+        if (!vehiculeRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Véhicule introuvable : " + id);
+        }
+        vehiculeRepository.deleteById(id);
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public VehiculeDto getVehicule(UUID id) {
+        return vehiculeRepository.findById(id)
+                .map(vehiculeMappers::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Véhicule introuvable : " + id));
+    }
 
-	@Override
-	public void delete(UUID id) {
-		vehiculeRepository.deleteById(id);
-	}
-
-	@Override
-	public VehiculeDto getVehicule(UUID id) {
-		// TODO Auto-generated method stub
-		VehiculeEntity rechercheVehicule = vehiculeRepository.findById(id).orElseThrow(() -> new RuntimeException("Vehicule non trouvé"));
-
-		return vehiculeMappers.toDto(rechercheVehicule);
-	}
-
-	@Override
-	public List<VehiculeDto> listeVehicule() {
-
-		List<VehiculeEntity> vehicules = vehiculeRepository.findAll();
-		
-		ArrayList<VehiculeDto> vehiculesDto = new ArrayList<>();
-		
-		for(VehiculeEntity vehicule : vehicules)
-			vehiculesDto.add(vehiculeMappers.toDto(vehicule));
-		
-		return vehiculesDto;
-	}
-	
-	
-	@Override
-    public List<VehiculeDto> ListevehiculeDisponible() {
-        List<VehiculeEntity> disponibles = vehiculeRepository.findByStatut(StatutVehicule.Disponible);
-        return disponibles.stream()
+    @Override
+    @Transactional(readOnly = true)
+    public List<VehiculeDto> listeVehicule() {
+        return vehiculeRepository.findAll().stream()
                 .map(vehiculeMappers::toDto)
                 .collect(Collectors.toList());
-    }	
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<VehiculeDto> ListevehiculeDisponible() {
+        return vehiculeRepository.findByStatut(StatutVehicule.DISPONIBLE).stream()
+                .map(vehiculeMappers::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<VehiculeDto> getDisponiblesByVille(UUID villeId) {
+        return vehiculeRepository
+                .findByStatutAndVilleActuelle_Id(StatutVehicule.DISPONIBLE, villeId).stream()
+                .map(vehiculeMappers::toDto)
+                .collect(Collectors.toList());
+    }
+
+    private void resolveVilles(VehiculeEntity e, VehiculeDto dto) {
+        if (dto.getVilleBaseId() != null) {
+            VilleEntity base = villeRepository.findById(dto.getVilleBaseId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Ville de base introuvable"));
+            e.setVilleBase(base);
+        }
+        if (dto.getVilleActuelleId() != null) {
+            VilleEntity actuelle = villeRepository.findById(dto.getVilleActuelleId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Ville actuelle introuvable"));
+            e.setVilleActuelle(actuelle);
+        }
+    }
 }

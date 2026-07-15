@@ -66,7 +66,7 @@ public class TrajetServiceImpl implements TrajetService {
         entity.setStatut(request.getStatut() != null ? request.getStatut() : StatutTrajet.PROGRAMME);
 
         // Mettre le véhicule en service
-        vehicule.setStatut(StatutVehicule.En_Service);
+        vehicule.setStatut(StatutVehicule.EN_ROUTE);
         vehiculeRepository.save(vehicule);
 
         return trajetMapper.toResponse(trajetRepository.save(entity));
@@ -91,5 +91,37 @@ public class TrajetServiceImpl implements TrajetService {
     @Override
     public void supprimerTrajet(UUID id) {
         trajetRepository.deleteById(id);
+    }
+
+    @Override
+    public TrajetResponseDto modifierTrajet(UUID id, TrajetRequestDto request) {
+        TrajetEntity entity = trajetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Trajet introuvable"));
+
+        VilleEntity depart = villeRepository.findById(request.getVilleDepartId())
+                .orElseThrow(() -> new RuntimeException("Départ non trouvé"));
+        VilleEntity arrivee = villeRepository.findById(request.getVilleArriveeId())
+                .orElseThrow(() -> new RuntimeException("Arrivée non trouvée"));
+        VehiculeEntity vehicule = vehiculeRepository.findById(request.getVehiculeId())
+                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé"));
+
+        User chauffeur = null;
+        if (request.getChauffeurId() != null) {
+            chauffeur = userRepository.findById(request.getChauffeurId())
+                    .orElseThrow(() -> new RuntimeException("Chauffeur non trouvé"));
+        }
+
+        entity.setVilleDepart(depart);
+        entity.setVilleArrivee(arrivee);
+        entity.setVehicule(vehicule);
+        entity.setChauffeur(chauffeur);
+        entity.setDistance(request.getDistance());
+        entity.setDureeEstimee(request.getDureeEstimee());
+        entity.setTarif(request.getTarif());
+        entity.setDateDepart(request.getDateDepart());
+        entity.setHeureDepart(request.getHeureDepart());
+        entity.setStatut(request.getStatut() != null ? request.getStatut() : StatutTrajet.PROGRAMME);
+
+        return trajetMapper.toResponse(trajetRepository.save(entity));
     }
 }

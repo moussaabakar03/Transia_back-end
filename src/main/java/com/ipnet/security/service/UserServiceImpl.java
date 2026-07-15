@@ -1,41 +1,52 @@
 package com.ipnet.security.service;
 
 
-import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ipnet.entity.AgenceEntity;
+import com.ipnet.entity.VilleEntity;
+import com.ipnet.repository.AgenceRepository;
+import com.ipnet.repository.VilleRepository;
 import com.ipnet.security.exception.AlreadyExistException;
 import com.ipnet.security.exception.ResourceNotFoundException;
 import com.ipnet.security.exception.response.AuthenticationResponse;
 import com.ipnet.security.UserDetailsImpl;
 import com.ipnet.security.dto.*;
+import com.ipnet.security.enums.StatutCompte;
 import com.ipnet.security.enums.UserRole;
 import com.ipnet.security.jwt.JwtUtils;
 import com.ipnet.security.mappers.UserMapper;
 import com.ipnet.security.model.History;
-import com.ipnet.security.model.Profil;
+import com.ipnet.security.model.PasswordResetToken;
 import com.ipnet.security.model.Role;
 import com.ipnet.security.model.User;
 import com.ipnet.security.repository.HistoryRepository;
+import com.ipnet.security.repository.PasswordResetTokenRepository;
 import com.ipnet.security.repository.ProfilRepository;
 import com.ipnet.security.repository.RoleRepository;
 import com.ipnet.security.repository.UserRepository;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class UserServiceImpl implements UserService {
+
+    private static final long RESET_TOKEN_VALIDITY_MINUTES = 30;
 
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -45,9 +56,17 @@ public class UserServiceImpl implements UserService {
     private final HistoryRepository historyRepository;
     private final RoleRepository roleRepository;
     private final ProfilRepository profilRepository;
-    
+    private final AgenceRepository agenceRepository;
+    private final VilleRepository villeRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
 
-    public UserServiceImpl(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository, UserMapper userMapper, HistoryRepository historyRepository, RoleRepository roleRepository, ProfilRepository profilRepository) {
+    public UserServiceImpl(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
+            JwtUtils jwtUtils, UserRepository userRepository, UserMapper userMapper,
+            HistoryRepository historyRepository, RoleRepository roleRepository,
+            ProfilRepository profilRepository, AgenceRepository agenceRepository,
+            VilleRepository villeRepository, PasswordResetTokenRepository passwordResetTokenRepository,
+            EmailService emailService) {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
@@ -56,92 +75,73 @@ public class UserServiceImpl implements UserService {
         this.historyRepository = historyRepository;
         this.roleRepository = roleRepository;
         this.profilRepository = profilRepository;
+        this.agenceRepository = agenceRepository;
+        this.villeRepository = villeRepository;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.emailService = emailService;
     }
 
     @Override
     public AuthenticationResponse authenticate(LoginDTO loginDTO) {
-
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginDTO.getUsername(),
-                            loginDTO.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(loginDTO.getTelephone(), loginDTO.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String token = jwtUtils.generateJwtToken(authentication);
 
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             List<String> roles = userDetails.getAuthorities()
-                                 .stream().map(item -> item.getAuthority()).collect(Collectors.toList());
+                    .stream().map(item -> item.getAuthority()).collect(Collectors.toList());
 
             createHistory(userDetails.getId());
 
-            return new AuthenticationResponse(token, userDetails.getId(), userDetails.getFullName(), userDetails.getUsername(),roles);
+            User user = userRepository.findByTelephone(loginDTO.getTelephone())
+                    .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
+
+            AuthenticationResponse response = new AuthenticationResponse(
+                    token, userDetails.getId(), userDetails.getFullName(), userDetails.getUsername(), roles);
+
+            if (user.getAgence() != null) {
+                response.setAgenceId(user.getAgence().getId());
+                response.setAgenceNom(user.getAgence().getNom());
+                if (user.getAgence().getVille() != null) {
+                    response.setVilleId(user.getAgence().getVille().getId());
+                    response.setVilleNom(user.getAgence().getVille().getNomVille());
+                }
+            }
+
+            return response;
 
         } catch (BadCredentialsException ex) {
             throw new IllegalArgumentException("Les paramètres de connexion sont incorrectes");
+        } catch (DisabledException ex) {
+            throw new IllegalArgumentException("Ce compte est inactif ou a été supprimé");
+        } catch (LockedException ex) {
+            throw new IllegalArgumentException("Ce compte est bloqué");
         }
     }
 
-    /*
     @Override
     public UserDTO saveUser(UserDTO userDTO) {
-        checkIfUserExists(userDTO);
-        User user = userMapper.mapToUser(userDTO);
-
-        Optional<HealthCenter> healthCenter = healthCenterRepository.findById(userDTO.getHealthCenterId());
-        if (healthCenter.isEmpty()) {
-            throw new ResourceNotFoundException("HealthCenter Not Found");
+        if (userRepository.existsByTelephone(userDTO.getTelephone())) {
+            throw new AlreadyExistException("Ce numéro de téléphone est déjà utilisé");
+        }
+        if (userDTO.getEmail() != null && !userDTO.getEmail().isBlank()
+                && userRepository.existsByEmail(userDTO.getEmail())) {
+            throw new AlreadyExistException("Cet e-mail est déjà utilisé");
         }
 
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        user.setRoles(userDTO.getRoles());
-
-        Optional<User> user1 = userRepository.findByPublicId(userDTO.getPublicId());
-        History history = new History();
-        history.setName("Enregistrement de l'utilisateur " + userDTO.getFullName());
-        history.setUser(user1.get());
-        history.setDateHistory(new Date());
-
-        historyRepository.save(history);
-
-        User savedUser = userRepository.save(user);
-
-        return userMapper.mapToUserDTO(savedUser);
-    }
-*/
-    
-    
-    @Override
-    public UserDTO saveUser(UserDTO userDTO) {
-        //checkIfUserExists(userDTO);
-
         User user = userMapper.mapToUser(userDTO);
-
-        // Générer publicId
         user.setPublicId(UUID.randomUUID());
-
-        // Encoder le mot de passe
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        user.setRoles(resolveRoles(userDTO.getRoles()));
 
-        user.setRole(userDTO.getRoles());
-        
-        /*Role role = roleRepository.findByName(userDTO.getRoles())
-                .orElseThrow(() -> new ResourceNotFoundException("Rôle introuvable : " + userDTO.getRoles()));
-        
-        user.setRole(role);*/
+        applyVillesEtAgence(user, userDTO);
+        user.setStatutOperationnel(userDTO.getStatutOperationnel());
 
-        
-        // Sauvegarder l'utilisateur
         User savedUser = userRepository.save(user);
-        
-        Profil profil = new Profil();
-        profil.setUser(savedUser);
-        profil.setNomComplet(userDTO.getFullName());
-        profilRepository.save(profil);
 
-        // Créer l'historique après sauvegarde
         History history = new History();
         history.setName("Enregistrement de l'utilisateur " + savedUser.getNom());
         history.setUser(savedUser);
@@ -154,7 +154,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserRoleReponse> getAllUsers() {
         return userRepository.findAll()
-                .stream().map(userMapper::mapToUserRoleDTO)
+                .stream()
+                .filter(user -> user.getStatutCompte() != StatutCompte.SUPPRIME)
+                .map(userMapper::mapToUserRoleDTO)
                 .toList();
     }
 
@@ -171,73 +173,233 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByPublicId(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User is not exists with given id:" + id));
 
-     /*   Optional<HealthCenter> healthCenter = healthCenterRepository.findById(userDTO.getHealthCenterId());
-        if (healthCenter.isEmpty()) {
-            throw new ResourceNotFoundException("HealthCenter Not Found");
-        }*/
-
-        
         user.setNom(userDTO.getFullName());
-        user.setUsername(userDTO.getUsername());
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        user.setRole(userDTO.getRoles());
-        
-        /*Role role = roleRepository.findByName(userDTO.getRoles())
-                .orElseThrow(() -> new ResourceNotFoundException("Rôle introuvable : " + userDTO.getRoles()));
-      
-        
-        user.setRole(role);*/
 
-        Optional<User> userHistory = userRepository.findByPublicId(userDTO.getPublicId());
+        if (userDTO.getTelephone() != null && !userDTO.getTelephone().equals(user.getTelephone())) {
+            if (userRepository.existsByTelephone(userDTO.getTelephone())) {
+                throw new AlreadyExistException("Ce numéro de téléphone est déjà utilisé");
+            }
+            user.setTelephone(userDTO.getTelephone());
+        }
+
+        if (userDTO.getEmail() != null && !userDTO.getEmail().equals(user.getEmail())) {
+            if (!userDTO.getEmail().isBlank() && userRepository.existsByEmail(userDTO.getEmail())) {
+                throw new AlreadyExistException("Cet e-mail est déjà utilisé");
+            }
+            user.setEmail(userDTO.getEmail());
+        }
+
+        if (userDTO.getPassword() != null && !userDTO.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        }
+
+        if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()) {
+            user.setRoles(resolveRoles(userDTO.getRoles()));
+        }
+
+        applyVillesEtAgence(user, userDTO);
+        user.setStatutOperationnel(userDTO.getStatutOperationnel());
+
         History history = new History();
-        history.setName("Modification de l'utilisateur " + userDTO.getFullName());
-        history.setUser(userHistory.get());
+        history.setName("Modification de l'utilisateur " + user.getNom());
+        history.setUser(user);
         history.setDateHistory(new Date());
-
         historyRepository.save(history);
 
         User updateUser = userRepository.save(user);
-
         return userMapper.mapToUserDTO(updateUser);
     }
 
     @Override
-    public void deleteUserById(UUID id) {
-        Optional<User> optionalUser = userRepository.findByPublicId(id);
-        if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("Utilisateur introuvable!");
+    public UserDTO updateMyInfo(UUID id, SelfUpdateDTO dto) {
+        User user = userRepository.findByPublicId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
+
+        if (dto.getFullName() != null && !dto.getFullName().isBlank()) {
+            user.setNom(dto.getFullName());
         }
 
-        User user = optionalUser.get();
-        user.setEnable(false);
+        if (dto.getTelephone() != null && !dto.getTelephone().isBlank() && !dto.getTelephone().equals(user.getTelephone())) {
+            if (userRepository.existsByTelephone(dto.getTelephone())) {
+                throw new AlreadyExistException("Ce numéro de téléphone est déjà utilisé");
+            }
+            user.setTelephone(dto.getTelephone());
+        }
+
+        if (dto.getEmail() != null && !dto.getEmail().equals(user.getEmail())) {
+            if (!dto.getEmail().isBlank() && userRepository.existsByEmail(dto.getEmail())) {
+                throw new AlreadyExistException("Cet e-mail est déjà utilisé");
+            }
+            user.setEmail(dto.getEmail().isBlank() ? null : dto.getEmail());
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        History history = new History();
+        history.setName("Modification de ses informations personnelles par " + user.getNom());
+        history.setUser(user);
+        history.setDateHistory(new Date());
+        historyRepository.save(history);
+
+        return userMapper.mapToUserDTO(updatedUser);
+    }
+
+    private void applyVillesEtAgence(User user, UserDTO dto) {
+        if (dto.getAgenceId() != null) {
+            AgenceEntity agence = agenceRepository.findById(dto.getAgenceId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Agence introuvable : " + dto.getAgenceId()));
+            user.setAgence(agence);
+        } else {
+            user.setAgence(null);
+        }
+        if (dto.getVilleBaseId() != null) {
+            VilleEntity base = villeRepository.findById(dto.getVilleBaseId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Ville de base introuvable"));
+            user.setVilleBase(base);
+        } else {
+            user.setVilleBase(null);
+        }
+        if (dto.getVilleActuelleId() != null) {
+            VilleEntity actuelle = villeRepository.findById(dto.getVilleActuelleId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Ville actuelle introuvable"));
+            user.setVilleActuelle(actuelle);
+        } else {
+            user.setVilleActuelle(null);
+        }
+    }
+
+    private Set<Role> resolveRoles(Set<UserRole> roleNames) {
+        if (roleNames == null || roleNames.isEmpty()) {
+            throw new IllegalArgumentException("Au moins un rôle doit être attribué à l'utilisateur");
+        }
+        return roleNames.stream()
+                .map(name -> roleRepository.findByName(name)
+                        .orElseGet(() -> {
+                            Role role = new Role();
+                            role.setName(name);
+                            role.setPublicId(UUID.randomUUID());
+                            return roleRepository.save(role);
+                        }))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void deleteUserById(UUID id) {
+        User user = userRepository.findByPublicId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable!"));
+
+        user.setStatutCompte(StatutCompte.SUPPRIME);
         userRepository.save(user);
+
+        History history = new History();
+        history.setName("Suppression du compte de l'utilisateur " + user.getNom());
+        history.setUser(user);
+        history.setDateHistory(new Date());
+        historyRepository.save(history);
+    }
+
+    @Override
+    public UserDTO changerStatutCompte(UUID id, StatutCompte statutCompte) {
+        User user = userRepository.findByPublicId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
+
+        user.setStatutCompte(statutCompte);
+        User updatedUser = userRepository.save(user);
+
+        History history = new History();
+        history.setName("Changement de statut du compte de " + user.getNom() + " vers " + statutCompte);
+        history.setUser(user);
+        history.setDateHistory(new Date());
+        historyRepository.save(history);
+
+        return userMapper.mapToUserDTO(updatedUser);
     }
 
     @Override
     public UserDTO updatePassword(UUID id, PasswordDTO passwordDTO) {
 
-        Optional<User> optionalUser = userRepository.findByPublicId(id);
-        if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("Utilisateur introuvable");
-        }
+        User user = userRepository.findByPublicId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
 
-        User user = optionalUser.get();
-        if (passwordEncoder.matches(passwordDTO.getCurrentPassword(), user.getPassword())) {
-            throw new ResourceNotFoundException("Le mot de passe actuel ne correspond pas !");
+        if (!passwordEncoder.matches(passwordDTO.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Le mot de passe actuel ne correspond pas !");
         }
 
         user.setPassword(passwordEncoder.encode(passwordDTO.getNewPassword()));
-        User updatePassword = userRepository.save(user);
+        User updatedUser = userRepository.save(user);
 
-        Optional<User> userHistory = userRepository.findById(passwordDTO.getUserId());
         History history = new History();
-        history.setName("Modification du mot de passe de l'utilisateur " + passwordDTO.getUserId());
-        history.setUser(userHistory.get());
+        history.setName("Modification du mot de passe de l'utilisateur " + user.getNom());
+        history.setUser(user);
         history.setDateHistory(new Date());
-
         historyRepository.save(history);
 
-        return userMapper.mapToUserDTO(updatePassword);
+        return userMapper.mapToUserDTO(updatedUser);
+    }
+
+    @Override
+    public String resetPasswordByAdmin(UUID id) {
+        User user = userRepository.findByPublicId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
+
+        String tempPassword = generateTemporaryPassword();
+        user.setPassword(passwordEncoder.encode(tempPassword));
+        userRepository.save(user);
+
+        History history = new History();
+        history.setName("Réinitialisation du mot de passe de l'utilisateur " + user.getNom() + " par un administrateur");
+        history.setUser(user);
+        history.setDateHistory(new Date());
+        historyRepository.save(history);
+
+        return tempPassword;
+    }
+
+    private String generateTemporaryPassword() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 10);
+    }
+
+    @Override
+    public void forgotPassword(ForgotPasswordRequestDTO dto) {
+        User user = userRepository.findByTelephone(dto.getTelephone())
+                .orElseThrow(() -> new ResourceNotFoundException("Aucun compte trouvé avec ce numéro"));
+
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Aucun e-mail enregistré pour ce compte. Contactez un agent pour réinitialiser votre mot de passe.");
+        }
+
+        PasswordResetToken resetToken = new PasswordResetToken();
+        resetToken.setToken(UUID.randomUUID().toString());
+        resetToken.setUser(user);
+        resetToken.setDateExpiration(Instant.now().plus(RESET_TOKEN_VALIDITY_MINUTES, ChronoUnit.MINUTES));
+        resetToken.setUtilise(false);
+        passwordResetTokenRepository.save(resetToken);
+
+        emailService.sendPasswordResetEmail(user.getEmail(), resetToken.getToken());
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordDTO dto) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(dto.getToken())
+                .orElseThrow(() -> new ResourceNotFoundException("Lien de réinitialisation invalide"));
+
+        if (resetToken.isUtilise() || resetToken.getDateExpiration().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Ce lien de réinitialisation a expiré ou a déjà été utilisé");
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
+
+        resetToken.setUtilise(true);
+        passwordResetTokenRepository.save(resetToken);
+
+        History history = new History();
+        history.setName("Réinitialisation du mot de passe par lien e-mail pour " + user.getNom());
+        history.setUser(user);
+        history.setDateHistory(new Date());
+        historyRepository.save(history);
     }
 
     @Override
@@ -254,44 +416,44 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
-    /*
-    private void checkIfUserExists(UserDTO userDTO){
-        if(userRepository.existsByUsername(userDTO.getUsername())) {
-            throw new AlreadyExistException(String.format("Ce nom existe déjà !!!", userDTO.getUsername()));
-        }
-    }*/
+    @Override
+    public List<UserRoleReponse> getChauffeurs() {
+        return userRepository.findAllByRoles_Name(UserRole.CHAUFFEUR)
+                .stream()
+                .map(userMapper::mapToUserRoleDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserRoleReponse> getLivreurs() {
+        return userRepository.findAllByRoles_Name(UserRole.LIVREUR)
+                .stream()
+                .map(userMapper::mapToUserRoleDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserRoleReponse> getChauffeursByVille(UUID villeId) {
+        return userRepository.findAllByRoles_NameAndVilleActuelle_Id(UserRole.CHAUFFEUR, villeId)
+                .stream()
+                .map(userMapper::mapToUserRoleDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserRoleReponse> getLivreursByVille(UUID villeId) {
+        return userRepository.findAllByRoles_NameAndVilleActuelle_Id(UserRole.LIVREUR, villeId)
+                .stream()
+                .map(userMapper::mapToUserRoleDTO)
+                .collect(Collectors.toList());
+    }
 
     private History createHistory(UUID userId) {
         User user = userRepository.findByPublicId(userId).get();
         History history = new History();
-        history.setName("Connexion de l'utilisateur " + user.getUsername());
+        history.setName("Connexion de l'utilisateur " + user.getNom());
         history.setUser(user);
         history.setDateHistory(new Date());
-
         return historyRepository.save(history);
-   
-   
     }
-  
-    private UserRoleReponse toUserRoleResponse(User user) {
-        UserRoleReponse dto = new UserRoleReponse();
-        dto.setId(user.getId());
-        dto.setFullName(user.getNom());
-        dto.setUsername(user.getUsername());
-        // Copiez les autres champs nécessaires pour l'affichage côté front
-        return dto;
-    }
-    
-   
-    @Override
-    public List<UserRoleReponse> getChauffeurs() {
-        return userRepository.findAllByRole_Name(UserRole.CHAUFFEUR) 
-                .stream()
-                .map(this::toUserRoleResponse)
-                .collect(Collectors.toList());
-    }
-  
-    
-    
-    
 }
