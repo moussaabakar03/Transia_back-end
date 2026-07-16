@@ -8,24 +8,42 @@ import org.springframework.stereotype.Component;
 public class PositionGpsMapper {
 
     public PositionGpsDto toDto(PositionGpsEntity entity) {
-        if (entity == null) return null;
+        if (entity == null) {
+            return null;
+        }
+
         PositionGpsDto dto = new PositionGpsDto();
+
         dto.setId(entity.getId());
         dto.setLatitude(entity.getLatitude());
         dto.setLongitude(entity.getLongitude());
+        dto.setVitesse(entity.getVitesse());
+        dto.setPrecisionGps(entity.getPrecisionGps());
+        dto.setAltitude(entity.getAltitude());
         dto.setDateHeure(entity.getDateHeure());
+
         if (entity.getSuiviTrajet() != null) {
-            dto.setSuiviTrajetId(entity.getSuiviTrajet().getId());
+            dto.setSuiviTrajetId(
+                    entity.getSuiviTrajet().getId()
+            );
         }
+
         return dto;
     }
 
     public PositionGpsEntity toEntity(PositionGpsDto dto) {
-        if (dto == null) return null;
+        if (dto == null) {
+            return null;
+        }
+
         PositionGpsEntity entity = new PositionGpsEntity();
+
         entity.setLatitude(dto.getLatitude());
         entity.setLongitude(dto.getLongitude());
-        entity.setDateHeure(dto.getDateHeure());
+        entity.setVitesse(dto.getVitesse());
+        entity.setPrecisionGps(dto.getPrecisionGps());
+        entity.setAltitude(dto.getAltitude());
+
         return entity;
     }
 }
