@@ -57,6 +57,10 @@ public class TrajetEntity extends BaseEntity {
     @JoinColumn(name = "chauffeur_id")
     private User chauffeur;
 
+    @ManyToOne
+    @JoinColumn(name = "agence_id")
+    private AgenceEntity agence;
+
     // Constructeur vide
     public TrajetEntity() {
     }
@@ -112,4 +116,7 @@ public class TrajetEntity extends BaseEntity {
     
     public User getChauffeur() { return chauffeur; }
     public void setChauffeur(User chauffeur) { this.chauffeur = chauffeur; }
+
+    public AgenceEntity getAgence() { return agence; }
+    public void setAgence(AgenceEntity agence) { this.agence = agence; }
 }

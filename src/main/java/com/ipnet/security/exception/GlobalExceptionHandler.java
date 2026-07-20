@@ -1,5 +1,6 @@
 package com.ipnet.security.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -11,6 +12,20 @@ import java.util.Date;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * Contrainte SQL violée (clé étrangère au delete, colonne trop courte, valeur dupliquée sans
+     * exception métier dédiée...). Évite de renvoyer la requête SQL brute au client comme le ferait
+     * le handler générique ci-dessous.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public final ResponseEntity<ErrorMessage> handleDataIntegrityViolation(Exception ex, WebRequest request) {
+        ErrorMessage response = new ErrorMessage(HttpStatus.CONFLICT.value(), new Date(),
+                "Cette opération est impossible : la ressource est référencée par d'autres données, ou une valeur envoyée est invalide.",
+                request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
 
     @ExceptionHandler(AlreadyExistException.class)
     public final ResponseEntity<ErrorMessage> handleResourceAlreadyExists(Exception ex, WebRequest request) {

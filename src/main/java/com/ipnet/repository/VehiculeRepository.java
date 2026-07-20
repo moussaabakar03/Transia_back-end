@@ -1,6 +1,7 @@
 package com.ipnet.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,8 @@ public interface VehiculeRepository extends JpaRepository<VehiculeEntity, UUID> 
 
     // Clé du filtrage multi-agences : disponibles dans une ville précise
     List<VehiculeEntity> findByStatutAndVilleActuelle_Id(StatutVehicule statut, UUID villeId);
+
+    List<VehiculeEntity> findByAgence_Id(UUID agenceId);
+
+    Optional<VehiculeEntity> findByImmatriculation(String immatriculation);
 }

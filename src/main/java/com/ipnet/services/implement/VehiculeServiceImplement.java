@@ -8,10 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ipnet.dto.VehiculeDto;
+import com.ipnet.entity.AgenceEntity;
 import com.ipnet.entity.VehiculeEntity;
 import com.ipnet.entity.VilleEntity;
 import com.ipnet.enums.StatutVehicule;
 import com.ipnet.mappers.VehiculeMappers;
+import com.ipnet.repository.AgenceRepository;
 import com.ipnet.repository.VehiculeRepository;
 import com.ipnet.repository.VilleRepository;
 import com.ipnet.security.exception.ResourceNotFoundException;
@@ -24,18 +26,22 @@ public class VehiculeServiceImplement implements VehiculeServiceInterface {
     private final VehiculeRepository vehiculeRepository;
     private final VehiculeMappers vehiculeMappers;
     private final VilleRepository villeRepository;
+    private final AgenceRepository agenceRepository;
 
     public VehiculeServiceImplement(VehiculeRepository vehiculeRepository,
-            VehiculeMappers vehiculeMappers, VilleRepository villeRepository) {
+            VehiculeMappers vehiculeMappers, VilleRepository villeRepository,
+            AgenceRepository agenceRepository) {
         this.vehiculeRepository = vehiculeRepository;
         this.vehiculeMappers = vehiculeMappers;
         this.villeRepository = villeRepository;
+        this.agenceRepository = agenceRepository;
     }
 
     @Override
     public VehiculeDto create(VehiculeDto dto) {
         VehiculeEntity e = vehiculeMappers.toEntity(dto);
         resolveVilles(e, dto);
+        resolveAgence(e, dto);
         return vehiculeMappers.toDto(vehiculeRepository.save(e));
     }
 
@@ -51,7 +57,9 @@ public class VehiculeServiceImplement implements VehiculeServiceInterface {
         e.setCapaciteSoute(dto.getCapaciteSoute());
         e.setStatut(dto.getStatut());
         e.setImage(dto.getImage());
+        e.setKilometrage(dto.getKilometrage());
         resolveVilles(e, dto);
+        resolveAgence(e, dto);
 
         return vehiculeMappers.toDto(vehiculeRepository.save(e));
     }
@@ -107,6 +115,14 @@ public class VehiculeServiceImplement implements VehiculeServiceInterface {
             VilleEntity actuelle = villeRepository.findById(dto.getVilleActuelleId())
                     .orElseThrow(() -> new ResourceNotFoundException("Ville actuelle introuvable"));
             e.setVilleActuelle(actuelle);
+        }
+    }
+
+    private void resolveAgence(VehiculeEntity e, VehiculeDto dto) {
+        if (dto.getAgenceId() != null) {
+            AgenceEntity agence = agenceRepository.findById(dto.getAgenceId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Agence introuvable : " + dto.getAgenceId()));
+            e.setAgence(agence);
         }
     }
 }

@@ -2,21 +2,25 @@ package com.ipnet.mappers;
 
 import com.ipnet.dto.PositionGpsDto;
 import com.ipnet.dto.SuiviTrajetDto;
-import com.ipnet.entity.PositionGpsEntity;
 import com.ipnet.entity.SuiviTrajetEntity;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ipnet.entity.TrajetEntity;
+import com.ipnet.entity.VehiculeEntity;
+import com.ipnet.repository.PositionGpsRepository;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class SuiviTrajetMapper {
 
-    @Autowired
-    private PositionGpsMapper positionGpsMapper;
+    private final PositionGpsMapper positionGpsMapper;
+    private final PositionGpsRepository positionGpsRepository;
 
+    public SuiviTrajetMapper(
+            PositionGpsMapper positionGpsMapper,
+            PositionGpsRepository positionGpsRepository
+    ) {
+        this.positionGpsMapper = positionGpsMapper;
+        this.positionGpsRepository = positionGpsRepository;
+    }
 
     public SuiviTrajetDto toDto(SuiviTrajetEntity entity) {
         if (entity == null) {
@@ -24,39 +28,78 @@ public class SuiviTrajetMapper {
         }
 
         SuiviTrajetDto dto = new SuiviTrajetDto();
+
         dto.setId(entity.getId());
-        dto.setStatut(entity.getStatut());
-        
 
-        if (entity.getTrajet() != null) {
-            dto.setTrajetId(entity.getTrajet().getId());
+        if (entity.getStatut() != null) {
+            dto.setStatut(entity.getStatut().name());
         }
 
+        dto.setDateDemarrage(entity.getDateDemarrage());
+        dto.setDateFin(entity.getDateFin());
+        dto.setDerniereMiseAJour(
+                entity.getDerniereMiseAJour()
+        );
+        dto.setMessage(entity.getMessage());
 
-        if (entity.getHistoriquePositions() != null) {
-            List<PositionGpsDto> positionsDtos = entity.getHistoriquePositions()
-                    .stream()
-                    .map(positionGpsMapper::toDto)
-                    .collect(Collectors.toList());
-            dto.setHistoriquePositions(positionsDtos);
-        } else {
-            dto.setHistoriquePositions(new ArrayList<>());
+        TrajetEntity trajet = entity.getTrajet();
+
+        if (trajet != null) {
+            dto.setTrajetId(trajet.getId());
+
+            if (trajet.getVilleDepart() != null) {
+                dto.setVilleDepart(
+                        trajet.getVilleDepart().getNomVille()
+                );
+            }
+
+            if (trajet.getVilleArrivee() != null) {
+                dto.setVilleArrivee(
+                        trajet.getVilleArrivee().getNomVille()
+                );
+            }
+
+            if (trajet.getChauffeur() != null) {
+                dto.setChauffeurId(
+                        trajet.getChauffeur().getPublicId()
+                );
+                dto.setChauffeurNom(
+                        trajet.getChauffeur().getNom()
+                );
+            }
+
+            VehiculeEntity vehicule = trajet.getVehicule();
+
+            if (vehicule != null) {
+                dto.setVehicule(
+                        vehicule.getMarque()
+                                + " "
+                                + vehicule.getModele()
+                );
+                dto.setImmatriculation(
+                        vehicule.getImmatriculation()
+                );
+            }
+
+            if (trajet.getDateDepart() != null) {
+                dto.setDateDepart(
+                        trajet.getDateDepart().toString()
+                );
+            }
+
+            dto.setHeureDepart(trajet.getHeureDepart());
         }
+
+        PositionGpsDto dernierePosition =
+                positionGpsRepository
+                        .findFirstBySuiviTrajet_IdOrderByDateHeureDesc(
+                                entity.getId()
+                        )
+                        .map(positionGpsMapper::toDto)
+                        .orElse(null);
+
+        dto.setDernierePosition(dernierePosition);
 
         return dto;
-    }
-
-
-    public SuiviTrajetEntity toEntity(SuiviTrajetDto dto) {
-        if (dto == null) {
-            return null;
-        }
-
-        SuiviTrajetEntity entity = new SuiviTrajetEntity();
-        entity.setId(dto.getId());
-        entity.setStatut(dto.getStatut());
-        
-
-        return entity;
     }
 }

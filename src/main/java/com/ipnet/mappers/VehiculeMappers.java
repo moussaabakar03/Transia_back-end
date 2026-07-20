@@ -18,7 +18,8 @@ public class VehiculeMappers {
         e.setCapaciteSoute(dto.getCapaciteSoute());
         e.setStatut(dto.getStatut());
         e.setImage(dto.getImage());
-        // villeBase et villeActuelle sont résolues dans le service (nécessite VilleRepository)
+        e.setKilometrage(dto.getKilometrage());
+        // villeBase, villeActuelle et agence sont résolues dans le service (nécessite les repositories associés)
         return e;
     }
 
@@ -32,6 +33,7 @@ public class VehiculeMappers {
         dto.setCapaciteSoute(e.getCapaciteSoute());
         dto.setStatut(e.getStatut());
         dto.setImage(e.getImage());
+        dto.setKilometrage(e.getKilometrage());
 
         if (e.getVilleBase() != null) {
             dto.setVilleBaseId(e.getVilleBase().getId());
@@ -40,6 +42,10 @@ public class VehiculeMappers {
         if (e.getVilleActuelle() != null) {
             dto.setVilleActuelleId(e.getVilleActuelle().getId());
             dto.setVilleActuelleNom(e.getVilleActuelle().getNomVille());
+        }
+        if (e.getAgence() != null) {
+            dto.setAgenceId(e.getAgence().getId());
+            dto.setAgenceNom(e.getAgence().getNom());
         }
         return dto;
     }

@@ -25,9 +25,13 @@ public class TrajetMapper {
         dto.setHeureDepart(entity.getHeureDepart());
         dto.setStatut(entity.getStatut());
 
-        // ChauffeurId
         if (entity.getChauffeur() != null) {
-            dto.setChauffeurId(entity.getChauffeur().getId());
+            dto.setChauffeurId(entity.getChauffeur().getPublicId());
+            dto.setChauffeurNom(entity.getChauffeur().getNom());
+        }
+        if (entity.getAgence() != null) {
+            dto.setAgenceId(entity.getAgence().getId());
+            dto.setAgenceNom(entity.getAgence().getNom());
         }
         return dto;
     }

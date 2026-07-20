@@ -187,19 +187,19 @@ public class UserApi {
     @GetMapping("/utilisateur/chauffeurs")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN_AGENCE','AGENT_ACCUEIL')")
     public ResponseEntity<List<UserRoleReponse>> getChauffeurs(@RequestParam(required = false) UUID villeId) {
-        if (villeId != null) {
-            return ResponseEntity.ok(userService.getChauffeursByVille(villeId));
-        }
-        return ResponseEntity.ok(userService.getChauffeurs());
+        List<UserRoleReponse> chauffeurs = villeId != null
+                ? userService.getChauffeursByVille(villeId)
+                : userService.getChauffeurs();
+        return ResponseEntity.ok(filtrerParAgenceSiNecessaire(chauffeurs));
     }
 
     @GetMapping("/utilisateur/livreurs")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN_AGENCE','AGENT_ACCUEIL')")
     public ResponseEntity<List<UserRoleReponse>> getLivreurs(@RequestParam(required = false) UUID villeId) {
-        if (villeId != null) {
-            return ResponseEntity.ok(userService.getLivreursByVille(villeId));
-        }
-        return ResponseEntity.ok(userService.getLivreurs());
+        List<UserRoleReponse> livreurs = villeId != null
+                ? userService.getLivreursByVille(villeId)
+                : userService.getLivreurs();
+        return ResponseEntity.ok(filtrerParAgenceSiNecessaire(livreurs));
     }
 
     private UUID callerAgenceId() {
@@ -220,6 +220,17 @@ public class UserApi {
                 throw new AccessDeniedException("Vous ne pouvez pas gérer un utilisateur d'une autre agence");
             }
         }
+    }
+
+    /** SUPER_ADMIN voit tout ; les autres ne voient que les comptes de leur propre agence. */
+    private List<UserRoleReponse> filtrerParAgenceSiNecessaire(List<UserRoleReponse> comptes) {
+        if (SecurityUtils.hasRole("SUPER_ADMIN")) {
+            return comptes;
+        }
+        UUID agenceId = callerAgenceId();
+        return comptes.stream()
+                .filter(c -> agenceId != null && agenceId.equals(c.getAgenceId()))
+                .toList();
     }
 
     private void enforceAgenceScopeOnWrite(UserDTO userDTO) {

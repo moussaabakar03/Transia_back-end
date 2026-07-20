@@ -24,7 +24,7 @@ public class VehiculeEntity extends BaseEntity {
     @Column(name = "Modele", length = 150)
     private String modele;
 
-    @Column(name = "immatriculation", length = 150)
+    @Column(name = "immatriculation", length = 150, unique = true)
     private String immatriculation;
 
     @Column(name = "Capacite", nullable = false)
@@ -37,8 +37,11 @@ public class VehiculeEntity extends BaseEntity {
     @Column(name = "Statut")
     private StatutVehicule statut;
 
-    @Column(name = "Image", length = 10000)
+    @Column(name = "Image", columnDefinition = "LONGTEXT")
     private String image;
+
+    @Column(name = "kilometrage")
+    private Double kilometrage = 0.0;
 
     @ManyToOne
     @JoinColumn(name = "ville_base_id")
@@ -47,6 +50,10 @@ public class VehiculeEntity extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "ville_actuelle_id")
     private VilleEntity villeActuelle;
+
+    @ManyToOne
+    @JoinColumn(name = "agence_id")
+    private AgenceEntity agence;
 
     public VehiculeEntity() {}
 
@@ -79,4 +86,10 @@ public class VehiculeEntity extends BaseEntity {
 
     public VilleEntity getVilleActuelle() { return villeActuelle; }
     public void setVilleActuelle(VilleEntity villeActuelle) { this.villeActuelle = villeActuelle; }
+
+    public Double getKilometrage() { return kilometrage; }
+    public void setKilometrage(Double kilometrage) { this.kilometrage = kilometrage; }
+
+    public AgenceEntity getAgence() { return agence; }
+    public void setAgence(AgenceEntity agence) { this.agence = agence; }
 }
