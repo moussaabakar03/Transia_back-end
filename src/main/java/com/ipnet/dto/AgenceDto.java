@@ -1,5 +1,7 @@
 package com.ipnet.dto;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class AgenceDto {
@@ -13,6 +15,8 @@ public class AgenceDto {
     private String email;
     private Double latitude;
     private Double longitude;
+    private Boolean statut;
+    private List<String> photos = new ArrayList<>();
 
     public AgenceDto() {}
 
@@ -42,4 +46,10 @@ public class AgenceDto {
 
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
+
+    public Boolean getStatut() { return statut; }
+    public void setStatut(Boolean statut) { this.statut = statut; }
+
+    public List<String> getPhotos() { return photos; }
+    public void setPhotos(List<String> photos) { this.photos = photos; }
 }

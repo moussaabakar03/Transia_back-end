@@ -4,6 +4,8 @@ import com.ipnet.utils.BaseEntity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -38,6 +40,17 @@ public class AgenceEntity extends BaseEntity {
     @Column(name = "longitude")
     private Double longitude;
 
+    // true = active, false = désactivée (n'apparaît plus comme point de service, sans supprimer l'historique lié en FK)
+    @Column(name = "statut", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean statut = true;
+
+    // Galerie de photos de l'agence (facultatif). Table séparée plutôt qu'une colonne unique :
+    // évite le problème de troncature déjà rencontré sur VehiculeEntity.image, et supporte plusieurs photos.
+    @ElementCollection
+    @CollectionTable(name = "agence_photos", joinColumns = @JoinColumn(name = "agence_id"))
+    @Column(name = "url", columnDefinition = "LONGTEXT")
+    private List<String> photos = new ArrayList<>();
+
     public AgenceEntity() {}
 
     public UUID getId() { return id; }
@@ -63,4 +76,10 @@ public class AgenceEntity extends BaseEntity {
 
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
+
+    public Boolean getStatut() { return statut; }
+    public void setStatut(Boolean statut) { this.statut = statut; }
+
+    public List<String> getPhotos() { return photos; }
+    public void setPhotos(List<String> photos) { this.photos = photos; }
 }

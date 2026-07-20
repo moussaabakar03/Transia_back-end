@@ -8,6 +8,7 @@ import java.util.UUID;
 public interface AgenceServiceInterface {
     AgenceDto create(AgenceDto dto);
     AgenceDto update(UUID id, AgenceDto dto);
+    AgenceDto updateStatut(UUID id, boolean statut);
     AgenceDto getById(UUID id);
     List<AgenceDto> getAll();
     List<AgenceDto> getByVille(UUID villeId);

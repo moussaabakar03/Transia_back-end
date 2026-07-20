@@ -22,7 +22,12 @@ public class VilleEntity extends BaseEntity {
     @Column(name="Region", length=100)
     private String region;
 
-    
+    // Ajouté pour le package Géographie : pays d'implantation de la ville (préparation à l'international).
+    // Défaut en base pour ne pas casser les lignes déjà existantes qui n'ont pas cette colonne.
+    @Column(name="Pays", nullable=false, length=100, columnDefinition = "VARCHAR(100) DEFAULT 'Togo'")
+    private String pays = "Togo";
+
+
     @OneToMany(mappedBy = "villeDepart", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<TrajetEntity> trajetsDepart;
@@ -43,6 +48,9 @@ public class VilleEntity extends BaseEntity {
 
     public String getRegion() { return region; }
     public void setRegion(String region) { this.region = region; }
+
+    public String getPays() { return pays; }
+    public void setPays(String pays) { this.pays = pays; }
 
     public List<TrajetEntity> getTrajetsDepart() { return trajetsDepart; }
     public void setTrajetsDepart(List<TrajetEntity> trajetsDepart) { this.trajetsDepart = trajetsDepart; }

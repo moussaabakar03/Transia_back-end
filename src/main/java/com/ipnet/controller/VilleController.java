@@ -28,10 +28,11 @@ public class VilleController {
         this.villeService = villeService;
     }
 
-    // Les villes sont une référence partagée par tout le réseau (agences, véhicules, trajets) :
-    // gérées uniquement par SUPER_ADMIN, pas par ADMIN_AGENCE (même logique que AgenceController).
+    // Package Géographie : création/modification ouvertes à SUPER_ADMIN et ADMIN_AGENCE,
+    // suppression réservée à SUPER_ADMIN (une ville peut être référencée par des agences/trajets/véhicules
+    // d'autres agences que celle qui l'a créée).
     @PostMapping
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN_AGENCE')")
     public VilleDto create(@RequestBody VilleDto villeDto) {
         return villeService.create(villeDto);
     }
@@ -49,7 +50,7 @@ public class VilleController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN_AGENCE')")
     public VilleDto update(@RequestBody VilleDto villeDto, @PathVariable UUID id) {
         return villeService.update(villeDto, id);
     }
