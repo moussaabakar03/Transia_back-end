@@ -18,4 +18,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
     Integer sumPlacesOccupéesByTrajetId(@Param("trajetId") UUID trajetId);
     
     List<Reservation> findByTrajetId(UUID trajetId);
+
+    List<Reservation> findByUser_PublicId(UUID publicId);
 }

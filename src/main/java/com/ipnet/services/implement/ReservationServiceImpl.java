@@ -16,8 +16,14 @@ import com.ipnet.dto.ReservationRequestDto;
 import com.ipnet.dto.ReservationResponseDto;
 import com.ipnet.entity.*;
 import com.ipnet.enums.*;
+import com.ipnet.exception.PlacesInsuffisantesException;
+import com.ipnet.exception.ReservationNonModifiableException;
+import com.ipnet.exception.SiegeIndisponibleException;
+import com.ipnet.exception.TrajetIntrouvableException;
 import com.ipnet.mappers.ReservationMapper;
 import com.ipnet.repository.*;
+import com.ipnet.security.SecurityUtils;
+import com.ipnet.security.exception.ResourceNotFoundException;
 import com.ipnet.security.model.User;
 import com.ipnet.security.repository.UserRepository;
 import com.ipnet.services.interfaces.ReservationServiceInterface;
@@ -40,15 +46,29 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
         this.reservationMapper = reservationMapper;
     }
 
+    /**
+     * L'identité du titulaire n'est jamais acceptée depuis le client : un client connecté (rôle CLIENT)
+     * est automatiquement rattaché à sa propre réservation via son JWT. Le staff (SUPER_ADMIN/ADMIN_AGENCE/
+     * AGENT_ACCUEIL) peut créer une réservation "au comptoir" pour un client de passage sans compte :
+     * dans ce cas `user` reste null, seul `nomResponsable` identifie la réservation.
+     */
+    private User resolveTitulaire() {
+        if (SecurityUtils.hasRole("CLIENT")) {
+            return SecurityUtils.getConnectedUser(userRepository);
+        }
+        return null;
+    }
+
     @Override
     @Transactional
     public ReservationResponseDto create(ReservationRequestDto dto) {
         // 1. Vérifications Entités
-        User user = (dto.getUserId() != null) ? 
-            userRepository.findById(dto.getUserId()).orElseThrow(() -> new RuntimeException("Utilisateur non trouvé")) : null;
-        
-        TrajetEntity trajet = trajetRepository.findById(dto.getTrajetId())
-            .orElseThrow(() -> new RuntimeException("Trajet non trouvé"));
+        User user = resolveTitulaire();
+
+        // Verrou pessimiste sur le trajet : évite qu'une requête concurrente ne réserve les mêmes
+        // places restantes avant que celle-ci ne soit validée et enregistrée.
+        TrajetEntity trajet = trajetRepository.findByIdForUpdate(dto.getTrajetId())
+            .orElseThrow(TrajetIntrouvableException::new);
 
         // 2. Gestion des places disponibles (Filtrage par statut via Repository)
         Integer dejaOccupe = reservationRepository.sumPlacesOccupéesByTrajetId(dto.getTrajetId());
@@ -58,7 +78,7 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
         int placesRestantes = capaciteTotale - dejaOccupe;
 
         if (dto.getNombrePlace() > placesRestantes) {
-            throw new RuntimeException("Désolé, il ne reste que " + placesRestantes + " places disponibles.");
+            throw new PlacesInsuffisantesException("Désolé, il ne reste que " + placesRestantes + " places disponibles.");
         }
 
         // 3. Création Reservation
@@ -70,8 +90,10 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
         res.setTrajet(trajet);
         res.setNombrePlace(dto.getNombrePlace());
         res.setNomResponsable(dto.getNomResponsable());
-        res.setTypeReservation(dto.getTypeReservation());
-        
+        // Dérivé du rôle du JWT, jamais du client : un CLIENT réserve forcément en ligne, le staff
+        // saisit forcément au comptoir. L'app mobile n'envoie d'ailleurs jamais ce champ.
+        res.setTypeReservation(SecurityUtils.hasRole("CLIENT") ? TypeReservation.EN_LIGNE : TypeReservation.PRESENTIEL);
+
         Reservation savedRes = reservationRepository.save(res);
 
         // 4. Création des billets
@@ -109,37 +131,34 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
     }
     
 
-        @Override
-        @Transactional
-        public void annulerReservation(UUID id) {
-            Reservation reservation = reservationRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Réservation introuvable."));
+    @Override
+    @Transactional
+    public void annulerReservation(UUID id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Réservation introuvable."));
 
-            String statutReservation = reservation.getStatut() != null
-                    ? reservation.getStatut().name()
-                    : "";
-
-            if (!"EN_ATTENTE".equalsIgnoreCase(statutReservation)) {
-                throw new RuntimeException(
-                        "Seules les réservations non payées peuvent être annulées."
-                );
-            }
-
-            reservation.setStatut(StatutReservation.ANNULEE);
-
-            if (reservation.getBillets() != null) {
-                reservation.getBillets().forEach(billet -> billet.setStatut(StatutBillet.ANNULE));
-            }
-
-            reservationRepository.save(reservation);
+        if (reservation.getStatut() != StatutReservation.EN_ATTENTE
+                && reservation.getStatut() != StatutReservation.CONFIRMEE) {
+            throw new ReservationNonModifiableException(
+                    "Cette réservation ne peut plus être annulée (statut : " + reservation.getStatut() + ")."
+            );
         }
+
+        reservation.setStatut(StatutReservation.ANNULEE);
+
+        if (reservation.getBillets() != null) {
+            reservation.getBillets().forEach(billet -> billet.setStatut(StatutBillet.ANNULE));
+        }
+
+        reservationRepository.save(reservation);
+    }
 
     @Override
     @Transactional
     public ReservationResponseDto getById(UUID id) {
         Reservation res = reservationRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Réservation non trouvée"));
-        
+            .orElseThrow(() -> new ResourceNotFoundException("Réservation non trouvée"));
+
         // Logique d'expiration à la volée : si on consulte et que le temps est dépassé
         if (res.getStatut() == StatutReservation.EN_ATTENTE && LocalDateTime.now().isAfter(res.getExpiration())) {
             res.setStatut(StatutReservation.EXPIREE);
@@ -161,6 +180,16 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
                 .map(reservationMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    /** Réservations du client connecté, résolues via son JWT — remplace le filtrage côté mobile
+     * (par numericUserId/nom, peu fiable) qui existait faute d'un tel endpoint scopé côté serveur. */
+    @Override
+    public List<ReservationResponseDto> mesReservations() {
+        User caller = SecurityUtils.getConnectedUser(userRepository);
+        return reservationRepository.findByUser_PublicId(caller.getPublicId()).stream()
+                .map(reservationMapper::toDto)
+                .collect(Collectors.toList());
+    }
     
     
     
@@ -168,23 +197,28 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
     @Transactional
     public ReservationResponseDto modifierReservation(UUID id, ReservationRequestDto dto) {
         Reservation res = reservationRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Réservation introuvable avec l'ID : " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Réservation introuvable avec l'ID : " + id));
 
         if (res.getStatut() != StatutReservation.EN_ATTENTE) {
-            throw new RuntimeException("Modification impossible : La réservation est déjà " + res.getStatut());
+            throw new ReservationNonModifiableException("Modification impossible : la réservation est déjà " + res.getStatut());
         }
 
-        Integer occupeTotal = reservationRepository.sumPlacesOccupéesByTrajetId(res.getTrajet().getId());
+        // Verrou pessimiste sur le trajet pour la même raison qu'à la création : empêche une
+        // survente si une autre réservation est créée/modifiée en même temps sur ce trajet.
+        TrajetEntity trajet = trajetRepository.findByIdForUpdate(res.getTrajet().getId())
+            .orElseThrow(TrajetIntrouvableException::new);
+
+        Integer occupeTotal = reservationRepository.sumPlacesOccupéesByTrajetId(trajet.getId());
         int dejaOccupe = (occupeTotal != null) ? occupeTotal : 0;
-        
-        int placesDisponibles = res.getTrajet().getVehicule().getCapacite() - (dejaOccupe - res.getNombrePlace());
+
+        int placesDisponibles = trajet.getVehicule().getCapacite() - (dejaOccupe - res.getNombrePlace());
 
         if (dto.getNombrePlace() > placesDisponibles) {
-            throw new RuntimeException("Places insuffisantes. Il ne reste que " + placesDisponibles + " places.");
+            throw new PlacesInsuffisantesException("Places insuffisantes. Il ne reste que " + placesDisponibles + " places.");
         }
 
         res.setNombrePlace(dto.getNombrePlace());
-        res.setNomResponsable(dto.getNomResponsable()); 
+        res.setNomResponsable(dto.getNomResponsable());
 
         // 5. Nettoyage des anciens billets
         if (res.getBillets() != null) {
@@ -197,7 +231,9 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
         for (int i = 0; i < dto.getNombrePlace(); i++) {
             BilletEntity billet = new BilletEntity();
             billet.setReservation(res);
-            billet.setStatut(StatutBillet.VALIDE);
+            // Cohérent avec creerTrajet() : un billet ne devient VALIDE qu'après paiement effectif
+            // (validerPaiementCaisse / paiement en ligne), jamais directement à la modification.
+            billet.setStatut(StatutBillet.EN_ATTENTE);
             String nomPassager = (i == 0) ? res.getNomResponsable() :
                 (dto.getNomsPassagers() != null && i - 1 < dto.getNomsPassagers().size()) ?
                 dto.getNomsPassagers().get(i - 1) : "Invité de " + res.getNomResponsable();
@@ -261,13 +297,13 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
 				try {
 					int num = Integer.parseInt(siege);
 					if (num < 1 || num > capacite) {
-					   throw new RuntimeException("Siège invalide : " + siege);
+					   throw new SiegeIndisponibleException("Siège invalide : " + siege);
 					}
 				} catch (NumberFormatException e) {
-					throw new RuntimeException("Format de siège invalide : " + siege);
+					throw new IllegalArgumentException("Format de siège invalide : " + siege);
 				}
 				if (occupes.contains(siege) || alreadyAssigned.contains(siege)) {
-					throw new RuntimeException("Le siège " + siege + " est déjà occupé.");
+					throw new SiegeIndisponibleException("Le siège " + siege + " est déjà occupé.");
 				}
 				billets.get(i).setNumeroSiege(siege);
 				alreadyAssigned.add(siege);
@@ -287,7 +323,7 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
 				}
 			}
 			if (disponibles.isEmpty()) {
-				throw new RuntimeException("Aucun siège disponible pour ce trajet.");
+				throw new SiegeIndisponibleException("Aucun siège disponible pour ce trajet.");
 			}
 			// Choisir aléatoirement un siège parmi les disponibles
 			int randomIndex = (int) (Math.random() * disponibles.size());

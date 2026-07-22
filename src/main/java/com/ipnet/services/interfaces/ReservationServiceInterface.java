@@ -11,6 +11,7 @@ public interface ReservationServiceInterface {
     ReservationResponseDto getById(UUID id);
 	Integer nombrePlaceTrajet(UUID trajetId);
 	List<ReservationResponseDto> listeReservations();
+	List<ReservationResponseDto> mesReservations();
 	void annulerReservation(UUID id);
 	ReservationResponseDto modifierReservation(UUID id, ReservationRequestDto dto);
 	List<ReservationResponseDto> getReservationsByTrajet(UUID trajetId);
