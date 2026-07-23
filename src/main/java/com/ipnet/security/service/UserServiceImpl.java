@@ -59,30 +59,48 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AuthenticationResponse authenticate(LoginDTO loginDTO) {
+        public AuthenticationResponse authenticate(LoginDTO loginDTO) {
 
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginDTO.getUsername(),
-                            loginDTO.getPassword())
-            );
+            try {
+                Authentication authentication = authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                loginDTO.getUsername(),
+                                loginDTO.getPassword())
+                );
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String token = jwtUtils.generateJwtToken(authentication);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            List<String> roles = userDetails.getAuthorities()
-                                 .stream().map(item -> item.getAuthority()).collect(Collectors.toList());
+                String token = jwtUtils.generateJwtToken(authentication);
 
-            createHistory(userDetails.getId());
+                UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-            return new AuthenticationResponse(token, userDetails.getId(), userDetails.getFullName(), userDetails.getUsername(),roles);
+                List<String> roles = userDetails.getAuthorities()
+                        .stream()
+                        .map(item -> item.getAuthority())
+                        .collect(Collectors.toList());
 
-        } catch (BadCredentialsException ex) {
-            throw new IllegalArgumentException("Les paramètres de connexion sont incorrectes");
-        }
+                // Récupération de l'utilisateur afin d'obtenir son ID numérique
+                User authenticatedUser = userRepository
+                        .findByPublicId(userDetails.getId())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException("Utilisateur introuvable")
+                );
+
+        createHistory(userDetails.getId());
+
+        return new AuthenticationResponse(
+                token,
+                userDetails.getId(),          // UUID
+                authenticatedUser.getId(),    // ID numérique (Long)
+                userDetails.getFullName(),
+                userDetails.getUsername(),
+                roles
+        );
+
+    } catch (BadCredentialsException ex) {
+        throw new IllegalArgumentException("Les paramètres de connexion sont incorrectes");
     }
+}
 
     /*
     @Override

@@ -4,18 +4,30 @@ import java.util.List;
 import java.util.UUID;
 
 public class AuthenticationResponse {
+
+    // Identifiant public UUID
     private UUID id;
+
+    // Identifiant numérique de la base de données
+    private Long numericId;
+
     private String fullName;
     private String username;
     private List<String> roles;
     private String token;
     private String type = "Bearer";
 
-
-    public AuthenticationResponse(String accessToken, UUID id, String fullName, String username,
-                                   List<String> roles) {
+    public AuthenticationResponse(
+            String accessToken,
+            UUID id,
+            Long numericId,
+            String fullName,
+            String username,
+            List<String> roles
+    ) {
         this.token = accessToken;
         this.id = id;
+        this.numericId = numericId;
         this.fullName = fullName;
         this.username = username;
         this.roles = roles;
@@ -38,12 +50,27 @@ public class AuthenticationResponse {
     }
 
     public UUID getId() {
-
         return id;
     }
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public Long getNumericId() {
+        return numericId;
+    }
+
+    public void setNumericId(Long numericId) {
+        this.numericId = numericId;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public String getUsername() {
@@ -53,14 +80,10 @@ public class AuthenticationResponse {
     public void setUsername(String username) {
         this.username = username;
     }
-    public String getFullName() {
-        return fullName;
-    }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public List<String> getRoles() {
+        return roles;
     }
-
 
     public void setRoles(List<String> roles) {
         this.roles = roles;
@@ -81,10 +104,4 @@ public class AuthenticationResponse {
     public void setType(String type) {
         this.type = type;
     }
-
-    public List<String> getRoles() {
-        return roles;
-    }
-
-
 }

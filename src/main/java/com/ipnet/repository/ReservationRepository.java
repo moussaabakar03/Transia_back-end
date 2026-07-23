@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import com.ipnet.entity.Reservation;
+import com.ipnet.enums.StatutReservation;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, UUID> {
@@ -16,6 +18,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
            "WHERE r.trajet.id = :trajetId " +
            "AND r.statut IN (com.ipnet.enums.StatutReservation.EN_ATTENTE, com.ipnet.enums.StatutReservation.CONFIRMEE)")
     Integer sumPlacesOccupéesByTrajetId(@Param("trajetId") UUID trajetId);
-    
+
     List<Reservation> findByTrajetId(UUID trajetId);
+
+    List<Reservation> findByStatutIn(List<StatutReservation> statuts);
+
+    List<Reservation> findByUserIdOrderByDateReservationDesc(Long userId);
 }
