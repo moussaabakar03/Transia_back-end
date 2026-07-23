@@ -6,18 +6,22 @@ import java.util.UUID;
 public class AuthenticationResponse {
     private UUID id;
     private String fullName;
-    private String username;
+    private String telephone;
     private List<String> roles;
     private String token;
     private String type = "Bearer";
+    private UUID agenceId;
+    private String agenceNom;
+    private UUID villeId;
+    private String villeNom;
 
 
-    public AuthenticationResponse(String accessToken, UUID id, String fullName, String username,
+    public AuthenticationResponse(String accessToken, UUID id, String fullName, String telephone,
                                    List<String> roles) {
         this.token = accessToken;
         this.id = id;
         this.fullName = fullName;
-        this.username = username;
+        this.telephone = telephone;
         this.roles = roles;
     }
 
@@ -46,12 +50,12 @@ public class AuthenticationResponse {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getTelephone() {
+        return telephone;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
     }
     public String getFullName() {
         return fullName;
@@ -86,5 +90,15 @@ public class AuthenticationResponse {
         return roles;
     }
 
+    public UUID getAgenceId() { return agenceId; }
+    public void setAgenceId(UUID agenceId) { this.agenceId = agenceId; }
 
+    public String getAgenceNom() { return agenceNom; }
+    public void setAgenceNom(String agenceNom) { this.agenceNom = agenceNom; }
+
+    public UUID getVilleId() { return villeId; }
+    public void setVilleId(UUID villeId) { this.villeId = villeId; }
+
+    public String getVilleNom() { return villeNom; }
+    public void setVilleNom(String villeNom) { this.villeNom = villeNom; }
 }

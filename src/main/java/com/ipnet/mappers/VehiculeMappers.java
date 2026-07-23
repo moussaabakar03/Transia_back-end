@@ -4,37 +4,43 @@ import org.springframework.stereotype.Component;
 
 import com.ipnet.dto.VehiculeDto;
 import com.ipnet.entity.VehiculeEntity;
-import com.ipnet.enums.StatutVehicule;
 
 @Component
 public class VehiculeMappers {
-	
-	public VehiculeEntity toEntity(VehiculeDto vehiculeDto) {
-		VehiculeEntity vehiculeEntity = new VehiculeEntity();
-		
-		vehiculeEntity.setId(vehiculeDto.getId());
-		vehiculeEntity.setMarque(vehiculeDto.getMarque());
-		vehiculeEntity.setModele(vehiculeDto.getModele());
-		vehiculeEntity.setImmatriculation(vehiculeDto.getImmatriculation());
-		vehiculeEntity.setCapacite(vehiculeDto.getCapacite());
-		vehiculeEntity.setStatut(vehiculeDto.getStatut());
-		vehiculeEntity.setImage(vehiculeDto.getImage());
-		
-		return vehiculeEntity;
-	}
-	
-	
-	public VehiculeDto toDto(VehiculeEntity vehiculeEntity) {
-		VehiculeDto vehiculeDto = new VehiculeDto();
-		
-		vehiculeDto.setId(vehiculeEntity.getId());
-		vehiculeDto.setMarque(vehiculeEntity.getMarque());
-		vehiculeDto.setModele(vehiculeEntity.getModele());
-		vehiculeDto.setImmatriculation(vehiculeEntity.getImmatriculation());
-		vehiculeDto.setCapacite(vehiculeEntity.getCapacite());
-		vehiculeDto.setStatut(vehiculeEntity.getStatut());
-		vehiculeDto.setImage(vehiculeEntity.getImage());
-		
-		return vehiculeDto;
-	}
+
+    public VehiculeEntity toEntity(VehiculeDto dto) {
+        VehiculeEntity e = new VehiculeEntity();
+        e.setId(dto.getId());
+        e.setMarque(dto.getMarque());
+        e.setModele(dto.getModele());
+        e.setImmatriculation(dto.getImmatriculation());
+        e.setCapacite(dto.getCapacite());
+        e.setCapaciteSoute(dto.getCapaciteSoute());
+        e.setStatut(dto.getStatut());
+        e.setImage(dto.getImage());
+        // villeBase et villeActuelle sont résolues dans le service (nécessite VilleRepository)
+        return e;
+    }
+
+    public VehiculeDto toDto(VehiculeEntity e) {
+        VehiculeDto dto = new VehiculeDto();
+        dto.setId(e.getId());
+        dto.setMarque(e.getMarque());
+        dto.setModele(e.getModele());
+        dto.setImmatriculation(e.getImmatriculation());
+        dto.setCapacite(e.getCapacite());
+        dto.setCapaciteSoute(e.getCapaciteSoute());
+        dto.setStatut(e.getStatut());
+        dto.setImage(e.getImage());
+
+        if (e.getVilleBase() != null) {
+            dto.setVilleBaseId(e.getVilleBase().getId());
+            dto.setVilleBaseNom(e.getVilleBase().getNomVille());
+        }
+        if (e.getVilleActuelle() != null) {
+            dto.setVilleActuelleId(e.getVilleActuelle().getId());
+            dto.setVilleActuelleNom(e.getVilleActuelle().getNomVille());
+        }
+        return dto;
+    }
 }

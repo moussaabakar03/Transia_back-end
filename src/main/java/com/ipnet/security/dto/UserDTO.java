@@ -1,32 +1,39 @@
 package com.ipnet.security.dto;
 
 
+import java.util.Set;
 import java.util.UUID;
 
-import com.ipnet.security.model.Role;
+import com.ipnet.security.enums.StatutCompte;
+import com.ipnet.security.enums.StatutOperationnel;
+import com.ipnet.security.enums.UserRole;
 
 
 public class UserDTO {
 
+    private Long id;
     private String fullName;
-    private String username;
+    private String telephone;
+    private String email;
     private String password;
-    //private String roles;
-    private Role roles;
-    //private String roleName;   // était "private Role roles;"
+    private Set<UserRole> roles;
 
-    private boolean enable;
+    private StatutCompte statutCompte;
     private UUID publicId;
+    private UUID agenceId;
+    private UUID villeBaseId;
+    private UUID villeActuelleId;
+    private StatutOperationnel statutOperationnel;
 
     public UserDTO() {
     }
 
-    public UserDTO(String fullName, String username, String password, Role roles, boolean enable, UUID publicId) {
+    public UserDTO(String fullName, String telephone, String password, Set<UserRole> roles, StatutCompte statutCompte, UUID publicId) {
         this.fullName = fullName;
-        this.username = username;
+        this.telephone = telephone;
         this.password = password;
         this.roles = roles;
-        this.enable = enable;
+        this.statutCompte = statutCompte;
         this.publicId = publicId;
     }
 
@@ -38,12 +45,20 @@ public class UserDTO {
         this.fullName = fullName;
     }
 
-    public String getUsername() {
-        return username;
+    public String getTelephone() {
+        return telephone;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {
@@ -54,26 +69,21 @@ public class UserDTO {
         this.password = password;
     }
 
-    public Role getRoles() {
+    public Set<UserRole> getRoles() {
         return roles;
     }
 
-    public void setRoles(Role roles) {
+    public void setRoles(Set<UserRole> roles) {
         this.roles = roles;
     }
-    /*
-    public String getRoleName() { return roleName; }
-    public void setRoleName(String roleName) { this.roleName = roleName; }
-    */
-    public boolean isEnable() {
-        return enable;
+
+    public StatutCompte getStatutCompte() {
+        return statutCompte;
     }
 
-    public void setEnable(boolean enable) {
-        this.enable = enable;
+    public void setStatutCompte(StatutCompte statutCompte) {
+        this.statutCompte = statutCompte;
     }
-
-  
 
     public UUID getPublicId() {
         return publicId;
@@ -82,4 +92,19 @@ public class UserDTO {
     public void setPublicId(UUID publicId) {
         this.publicId = publicId;
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public UUID getAgenceId() { return agenceId; }
+    public void setAgenceId(UUID agenceId) { this.agenceId = agenceId; }
+
+    public UUID getVilleBaseId() { return villeBaseId; }
+    public void setVilleBaseId(UUID villeBaseId) { this.villeBaseId = villeBaseId; }
+
+    public UUID getVilleActuelleId() { return villeActuelleId; }
+    public void setVilleActuelleId(UUID villeActuelleId) { this.villeActuelleId = villeActuelleId; }
+
+    public StatutOperationnel getStatutOperationnel() { return statutOperationnel; }
+    public void setStatutOperationnel(StatutOperationnel s) { this.statutOperationnel = s; }
 }

@@ -17,14 +17,8 @@ public class Profil extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Column(name = "photo_profil")
-    private String photoProfil; // URL de l'image
-
-    @Column(name = "telephone", length = 20)
-    private String telephone;
-
-    @Column(name = "nom_complet", length = 150)
-    private String nomComplet;
+    @Column(name = "photo_profil", columnDefinition = "LONGTEXT")
+    private String photoProfil;
 
     @Column(name = "adresse")
     private String adresse;
@@ -41,12 +35,6 @@ public class Profil extends BaseEntity {
 
     public String getPhotoProfil() { return photoProfil; }
     public void setPhotoProfil(String photoProfil) { this.photoProfil = photoProfil; }
-
-    public String getTelephone() { return telephone; }
-    public void setTelephone(String telephone) { this.telephone = telephone; }
-
-    public String getNomComplet() { return nomComplet; }
-    public void setNomComplet(String nomComplet) { this.nomComplet = nomComplet; }
 
     public String getAdresse() { return adresse; }
     public void setAdresse(String adresse) { this.adresse = adresse; }

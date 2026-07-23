@@ -57,5 +57,10 @@ public class ReservationController {
     public List<String> getOccupiedSeats(@PathVariable UUID trajetId) {
         return reservationService.getOccupiedSeats(trajetId);
     }
-    
+
+    @PutMapping("/{id}/annuler")
+    public ResponseEntity<Void> annuler(@PathVariable UUID id) {
+        reservationService.annulerReservation(id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -47,11 +47,11 @@ public class SecurityConfig {
                 })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/api/v1/login", "/error", "/csrf", "/resources/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/import/**", "/etats/**", "/datasource/**", "api/v1/users",  "/api/v1/users/**", "/api/roles")
+                        .requestMatchers("/","/api/v1/login", "/api/v1/register", "/api/v1/forgot-password", "/api/v1/reset-password", "/error", "/csrf", "/resources/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/import/**", "/etats/**", "/datasource/**", "api/v1/ville", "api/v1/ville/**")
                         .permitAll()
                       
                      
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasAnyRole("SUPER_ADMIN", "ADMIN_AGENCE")
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )

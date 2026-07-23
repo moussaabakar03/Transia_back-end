@@ -10,8 +10,9 @@ public class BilletDto {
     private String nomPassager;
     private StatutBillet statut;
     private LocalDateTime dateEmission;
-
     private String numeroSiege;
+    private UUID reservationId;
+    private String trajetInfo;
 
     
     public BilletDto() {}
@@ -57,9 +58,12 @@ public class BilletDto {
 	}
 	
     public String getNumeroSiege() { return numeroSiege; }
-    
     public void setNumeroSiege(String numeroSiege) { this.numeroSiege = numeroSiege; }
-    
-    
+
+    public UUID getReservationId() { return reservationId; }
+    public void setReservationId(UUID reservationId) { this.reservationId = reservationId; }
+
+    public String getTrajetInfo() { return trajetInfo; }
+    public void setTrajetInfo(String trajetInfo) { this.trajetInfo = trajetInfo; }
 }
 

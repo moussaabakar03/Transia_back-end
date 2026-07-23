@@ -74,42 +74,37 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
         
         Reservation savedRes = reservationRepository.save(res);
 
-        // 4. Génération Billets
-       
-    	List<BilletEntity> billets = new ArrayList<>();
+        // 4. Création des billets
+        List<BilletEntity> billets = new ArrayList<>();
 
         for (int i = 0; i < dto.getNombrePlace(); i++) {
             BilletEntity billet = new BilletEntity();
             billet.setReservation(savedRes);
-
-            // 1. Déterminer le nom du passager
-
-            String nomPassager = (i == 0) ? dto.getNomResponsable() : 
-                (dto.getNomsPassagers() != null && i - 1 < dto.getNomsPassagers().size()) ? 
-                dto.getNomsPassagers().get(i - 1) : "Invité "+ i +" de " + dto.getNomResponsable();
-
+            String nomPassager = (i == 0) ? dto.getNomResponsable() :
+                (dto.getNomsPassagers() != null && i - 1 < dto.getNomsPassagers().size()) ?
+                dto.getNomsPassagers().get(i - 1) : "Invité " + i + " de " + dto.getNomResponsable();
             billet.setNomPassager(nomPassager);
-
             billet.setStatut(StatutBillet.EN_ATTENTE);
+            billets.add(billet);
+        }
 
+        // 4.5 Attribution des sièges AVANT génération du QR code
+        assignerSieges(billets, dto.getSiegesChoisis(), trajet, false, null);
 
+        // 4.6 QR code généré APRÈS attribution des sièges (pour inclure le numéro correct)
+        for (BilletEntity billet : billets) {
             String infoQr = String.format("ID:%s|SIEGE:%s|NOM:%s|TRAJET:%s|DATE:%s|STATUT:%s",
-                UUID.randomUUID().toString().substring(0, 8), 
+                UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
                 billet.getNumeroSiege(),
-                nomPassager,
+                billet.getNomPassager(),
                 savedRes.getTrajet().getVilleDepart().getNomVille() + "-" + savedRes.getTrajet().getVilleArrivee().getNomVille(),
                 savedRes.getTrajet().getHeureDepart().toString(),
                 billet.getStatut()
-
             );
-
-            billet.setQrCode(infoQr); 
-            billets.add(billet);
+            billet.setQrCode(infoQr);
         }
-        // 4.5 Attribution des sièges (si demandés)
-        assignerSieges(billets, dto.getSiegesChoisis(), trajet, false, null);
-        
-        billetRepository.saveAll(billets);        
+
+        billetRepository.saveAll(billets);
         return reservationMapper.toDto(savedRes);
     }
     
@@ -197,33 +192,28 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
             BilletEntity billet = new BilletEntity();
             billet.setReservation(res);
             billet.setStatut(StatutBillet.VALIDE);
-
-            String nomPassager;
-            if (i == 0) {
-                nomPassager = res.getNomResponsable(); // Utilise le nouveau nom mis à jour au point 
-            } else if (dto.getNomsPassagers() != null && i - 1 < dto.getNomsPassagers().size()) {
-                nomPassager = dto.getNomsPassagers().get(i - 1);
-            } else {
-                nomPassager = "Invité de " + res.getNomResponsable();
-            }
-
+            String nomPassager = (i == 0) ? res.getNomResponsable() :
+                (dto.getNomsPassagers() != null && i - 1 < dto.getNomsPassagers().size()) ?
+                dto.getNomsPassagers().get(i - 1) : "Invité de " + res.getNomResponsable();
             billet.setNomPassager(nomPassager);
-            
-            String infoQr = String.format("ID:%s|SIEGE:%s|NOM:%s|TRAJET:%s|DATE:%s|STATUT:%s",
-                    UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
-                    billet.getNumeroSiege(),
-                    nomPassager,
-                    res.getTrajet().getVilleDepart().getNomVille() + "-" + res.getTrajet().getVilleArrivee().getNomVille(),
-                    res.getTrajet().getHeureDepart().toString(),
-                    billet.getStatut()
-                );
-
-            billet.setQrCode(infoQr); 
             nouveauxBillets.add(billet);
         }
 
-        // Attribution des sièges pour la modification
+        // Attribution des sièges AVANT génération du QR code
         assignerSieges(nouveauxBillets, dto.getSiegesChoisis(), res.getTrajet(), true, res);
+
+        // QR code généré APRÈS attribution des sièges
+        for (BilletEntity billet : nouveauxBillets) {
+            String infoQr = String.format("ID:%s|SIEGE:%s|NOM:%s|TRAJET:%s|DATE:%s|STATUT:%s",
+                UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
+                billet.getNumeroSiege(),
+                billet.getNomPassager(),
+                res.getTrajet().getVilleDepart().getNomVille() + "-" + res.getTrajet().getVilleArrivee().getNomVille(),
+                res.getTrajet().getHeureDepart().toString(),
+                billet.getStatut()
+            );
+            billet.setQrCode(infoQr);
+        }
         
         billetRepository.saveAll(nouveauxBillets);
         res.setBillets(nouveauxBillets); 

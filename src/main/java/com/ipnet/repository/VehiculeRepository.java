@@ -4,10 +4,16 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.ipnet.entity.VehiculeEntity;
 import com.ipnet.enums.StatutVehicule;
 
-public interface VehiculeRepository extends JpaRepository<VehiculeEntity, UUID>{
+@Repository
+public interface VehiculeRepository extends JpaRepository<VehiculeEntity, UUID> {
+
     List<VehiculeEntity> findByStatut(StatutVehicule statut);
+
+    // Clé du filtrage multi-agences : disponibles dans une ville précise
+    List<VehiculeEntity> findByStatutAndVilleActuelle_Id(StatutVehicule statut, UUID villeId);
 }

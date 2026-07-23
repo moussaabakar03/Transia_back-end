@@ -5,13 +5,12 @@ import java.util.UUID;
 
 import com.ipnet.dto.VehiculeDto;
 
-
 public interface VehiculeServiceInterface {
-	public VehiculeDto create(VehiculeDto vehiculeDto);
-	public VehiculeDto update(VehiculeDto vehiculeDto, UUID id);
-	public void delete(UUID id);
-	public VehiculeDto getVehicule(UUID id);
-	public List<VehiculeDto> listeVehicule();
-	public List<VehiculeDto> ListevehiculeDisponible();
-	
+    VehiculeDto create(VehiculeDto vehiculeDto);
+    VehiculeDto update(VehiculeDto vehiculeDto, UUID id);
+    void delete(UUID id);
+    VehiculeDto getVehicule(UUID id);
+    List<VehiculeDto> listeVehicule();
+    List<VehiculeDto> ListevehiculeDisponible();
+    List<VehiculeDto> getDisponiblesByVille(UUID villeId);
 }

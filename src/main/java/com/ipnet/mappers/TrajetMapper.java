@@ -33,6 +33,7 @@ public class TrajetMapper {
     }
 
     private VilleDto toVilleDto(VilleEntity entity) {
+        if (entity == null) return null;
         VilleDto dto = new VilleDto();
         dto.setId(entity.getId());
         dto.setNomVille(entity.getNomVille());
@@ -41,6 +42,7 @@ public class TrajetMapper {
     }
 
     private VehiculeDto toVehiculeDto(VehiculeEntity entity) {
+        if (entity == null) return null;
         VehiculeDto dto = new VehiculeDto();
         dto.setId(entity.getId());
         dto.setMarque(entity.getMarque());

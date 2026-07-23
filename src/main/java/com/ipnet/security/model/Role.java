@@ -7,6 +7,7 @@ import com.ipnet.security.enums.UserRole;
 import com.ipnet.utils.BaseEntity;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -17,6 +18,19 @@ public class Role extends BaseEntity implements Serializable {
     @Override
 	public String toString() {
 		return ": " + name ;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof Role)) return false;
+		Role role = (Role) o;
+		return name == role.name;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(name);
 	}
 
 	@Id
