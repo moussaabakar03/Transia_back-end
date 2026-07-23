@@ -45,6 +45,16 @@ public class BilletServiceImpl implements BilletServiceInterface {
         return billetMapper.toDto(billetRepository.save(billet));
     }
 
+    // Lecture seule, contrairement à validerBillet : sert au chauffeur pour comprendre pourquoi
+    // un QR scanné n'appartient pas au trajet en cours (billet d'un autre trajet, pas encore payé...)
+    // sans marquer le billet comme utilisé.
+    @Override
+    public BilletDto rechercherParQrCode(String qrCode) {
+        BilletEntity billet = billetRepository.findByQrCode(qrCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Billet introuvable pour ce QR code"));
+        return billetMapper.toDto(billet);
+    }
+
     @Override
     public List<BilletDto> getBilletsByTrajet(UUID trajetId) {
         return billetRepository.findByReservation_Trajet_Id(trajetId)
