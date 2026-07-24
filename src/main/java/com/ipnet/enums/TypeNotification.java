@@ -1,0 +1,13 @@
+package com.ipnet.enums;
+
+public enum TypeNotification {
+    RAPPEL_PAIEMENT_48H,
+    PAIEMENT_URGENT_24H,
+    RAPPEL_VOYAGE_24H,
+    PAIEMENT_CONFIRME,
+    TRAJET_RETARDE,
+    TRAJET_ANNULE,
+    RESERVATION_EXPIREE,
+    REMBOURSEMENT,
+    INFORMATION
+}

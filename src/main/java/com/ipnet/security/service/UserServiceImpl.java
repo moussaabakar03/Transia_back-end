@@ -84,7 +84,8 @@ public class UserServiceImpl implements UserService {
         this.emailService = emailService;
     }
 
-    @Override
+
+    @Override 
     public AuthenticationResponse authenticate(LoginDTO loginDTO) {
         User user = userRepository.findByTelephone(loginDTO.getTelephone()).orElse(null);
 
