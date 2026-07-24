@@ -12,7 +12,7 @@ public class TourneeDto {
     private UUID livreurId;
     private UserDTO livreur;
     private String zone;
-    private List<ColisDto> colis;
+    private List<DemandeCollecteDto> demandesCollecte;
     private String statut;
 
     public UUID getId() {
@@ -55,12 +55,12 @@ public class TourneeDto {
         this.zone = zone;
     }
 
-    public List<ColisDto> getColis() {
-        return colis;
+    public List<DemandeCollecteDto> getDemandesCollecte() {
+        return demandesCollecte;
     }
 
-    public void setColis(List<ColisDto> colis) {
-        this.colis = colis;
+    public void setDemandesCollecte(List<DemandeCollecteDto> demandesCollecte) {
+        this.demandesCollecte = demandesCollecte;
     }
 
     public String getStatut() {

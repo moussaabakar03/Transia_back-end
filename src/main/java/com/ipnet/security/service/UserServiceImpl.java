@@ -34,6 +34,7 @@ import com.ipnet.security.repository.ProfilRepository;
 import com.ipnet.security.repository.RoleRepository;
 import com.ipnet.security.repository.UserRepository;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -47,6 +48,8 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private static final long RESET_TOKEN_VALIDITY_MINUTES = 30;
+    private static final int MAX_TENTATIVES_ECHOUEES = 5;
+    private static final long DUREE_VERROUILLAGE_MINUTES = 3;
 
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -81,8 +84,18 @@ public class UserServiceImpl implements UserService {
         this.emailService = emailService;
     }
 
-    @Override
+
+    @Override 
     public AuthenticationResponse authenticate(LoginDTO loginDTO) {
+        User user = userRepository.findByTelephone(loginDTO.getTelephone()).orElse(null);
+
+        if (user != null && user.getVerrouilleJusqua() != null && user.getVerrouilleJusqua().isAfter(Instant.now())) {
+            long minutesRestantes = Math.max(1,
+                    (Duration.between(Instant.now(), user.getVerrouilleJusqua()).toSeconds() + 59) / 60);
+            throw new IllegalArgumentException("Compte temporairement bloqué suite à plusieurs échecs de connexion. "
+                    + "Réessayez dans " + minutesRestantes + " minute(s).");
+        }
+
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDTO.getTelephone(), loginDTO.getPassword()));
@@ -96,13 +109,16 @@ public class UserServiceImpl implements UserService {
 
             createHistory(userDetails.getId());
 
-            User user = userRepository.findByTelephone(loginDTO.getTelephone())
-                    .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
+            if (user != null && (nonZero(user.getTentativesEchouees()) || user.getVerrouilleJusqua() != null)) {
+                user.setTentativesEchouees(0);
+                user.setVerrouilleJusqua(null);
+                userRepository.save(user);
+            }
 
             AuthenticationResponse response = new AuthenticationResponse(
                     token, userDetails.getId(), userDetails.getFullName(), userDetails.getUsername(), roles);
 
-            if (user.getAgence() != null) {
+            if (user != null && user.getAgence() != null) {
                 response.setAgenceId(user.getAgence().getId());
                 response.setAgenceNom(user.getAgence().getNom());
                 if (user.getAgence().getVille() != null) {
@@ -114,12 +130,42 @@ public class UserServiceImpl implements UserService {
             return response;
 
         } catch (BadCredentialsException ex) {
+            if (user != null) {
+                boolean vientDetreVerrouille = enregistrerTentativeEchouee(user);
+                if (vientDetreVerrouille) {
+                    throw new IllegalArgumentException("Trop de tentatives échouées. Compte bloqué temporairement pendant "
+                            + DUREE_VERROUILLAGE_MINUTES + " minutes.");
+                }
+                int tentativesRestantes = MAX_TENTATIVES_ECHOUEES - user.getTentativesEchouees();
+                throw new IllegalArgumentException("Les paramètres de connexion sont incorrectes. Il vous reste "
+                        + tentativesRestantes + " tentative(s) avant blocage temporaire.");
+            }
             throw new IllegalArgumentException("Les paramètres de connexion sont incorrectes");
         } catch (DisabledException ex) {
             throw new IllegalArgumentException("Ce compte est inactif ou a été supprimé");
         } catch (LockedException ex) {
             throw new IllegalArgumentException("Ce compte est bloqué");
         }
+    }
+
+    private boolean nonZero(Integer valeur) {
+        return valeur != null && valeur != 0;
+    }
+
+    /** Incrémente le compteur d'échecs et verrouille temporairement le compte au-delà du seuil. Retourne true si le verrouillage vient d'être déclenché. */
+    private boolean enregistrerTentativeEchouee(User user) {
+        int tentatives = (user.getTentativesEchouees() == null ? 0 : user.getTentativesEchouees()) + 1;
+
+        if (tentatives >= MAX_TENTATIVES_ECHOUEES) {
+            user.setVerrouilleJusqua(Instant.now().plus(DUREE_VERROUILLAGE_MINUTES, ChronoUnit.MINUTES));
+            user.setTentativesEchouees(0);
+            userRepository.save(user);
+            return true;
+        }
+
+        user.setTentativesEchouees(tentatives);
+        userRepository.save(user);
+        return false;
     }
 
     @Override
@@ -418,7 +464,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserRoleReponse> getChauffeurs() {
-        return userRepository.findAllByRoles_Name(UserRole.CHAUFFEUR)
+        return userRepository.findAllByRoles_NameAndStatutCompte(UserRole.CHAUFFEUR, StatutCompte.ACTIF)
                 .stream()
                 .map(userMapper::mapToUserRoleDTO)
                 .collect(Collectors.toList());
@@ -426,7 +472,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserRoleReponse> getLivreurs() {
-        return userRepository.findAllByRoles_Name(UserRole.LIVREUR)
+        return userRepository.findAllByRoles_NameAndStatutCompte(UserRole.LIVREUR, StatutCompte.ACTIF)
                 .stream()
                 .map(userMapper::mapToUserRoleDTO)
                 .collect(Collectors.toList());
@@ -434,7 +480,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserRoleReponse> getChauffeursByVille(UUID villeId) {
-        return userRepository.findAllByRoles_NameAndVilleActuelle_Id(UserRole.CHAUFFEUR, villeId)
+        return userRepository.findAllByRoles_NameAndStatutCompteAndVilleActuelle_Id(
+                        UserRole.CHAUFFEUR, StatutCompte.ACTIF, villeId)
                 .stream()
                 .map(userMapper::mapToUserRoleDTO)
                 .collect(Collectors.toList());
@@ -442,7 +489,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserRoleReponse> getLivreursByVille(UUID villeId) {
-        return userRepository.findAllByRoles_NameAndVilleActuelle_Id(UserRole.LIVREUR, villeId)
+        return userRepository.findAllByRoles_NameAndStatutCompteAndVilleActuelle_Id(
+                        UserRole.LIVREUR, StatutCompte.ACTIF, villeId)
                 .stream()
                 .map(userMapper::mapToUserRoleDTO)
                 .collect(Collectors.toList());

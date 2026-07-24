@@ -54,17 +54,17 @@ public class TourneeController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{publicId}/colis/{colisId}")
-    public ResponseEntity<TourneeDto> addColisToTournee(
+    @PostMapping("/{publicId}/demandes/{demandeId}")
+    public ResponseEntity<TourneeDto> addDemandeToTournee(
             @PathVariable UUID publicId,
-            @PathVariable UUID colisId) {
-        return ResponseEntity.ok(tourneeService.addColisToTournee(publicId, colisId));
+            @PathVariable UUID demandeId) {
+        return ResponseEntity.ok(tourneeService.addDemandeToTournee(publicId, demandeId));
     }
 
-    @DeleteMapping("/{publicId}/colis/{colisId}")
-    public ResponseEntity<TourneeDto> removeColisFromTournee(
+    @DeleteMapping("/{publicId}/demandes/{demandeId}")
+    public ResponseEntity<TourneeDto> removeDemandeFromTournee(
             @PathVariable UUID publicId,
-            @PathVariable UUID colisId) {
-        return ResponseEntity.ok(tourneeService.removeColisFromTournee(publicId, colisId));
+            @PathVariable UUID demandeId) {
+        return ResponseEntity.ok(tourneeService.removeDemandeFromTournee(publicId, demandeId));
     }
 }

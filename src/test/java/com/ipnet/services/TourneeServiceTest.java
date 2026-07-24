@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,10 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.ipnet.dto.TourneeDto;
 import com.ipnet.dto.TourneeRequestDto;
-import com.ipnet.entity.Colis;
+import com.ipnet.entity.DemandeCollecteEntity;
 import com.ipnet.entity.Tournee;
 import com.ipnet.mappers.TourneeMapper;
-import com.ipnet.repository.ColisRepository;
+import com.ipnet.repository.DemandeCollecteRepository;
 import com.ipnet.repository.TourneeRepository;
 import com.ipnet.security.model.User;
 import com.ipnet.security.repository.UserRepository;
@@ -34,7 +33,7 @@ public class TourneeServiceTest {
     private TourneeRepository tourneeRepository;
 
     @Mock
-    private ColisRepository colisRepository;
+    private DemandeCollecteRepository demandeRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -49,7 +48,7 @@ public class TourneeServiceTest {
     private User livreur;
     private Tournee tournee;
     private TourneeDto tourneeDto;
-    private Colis colis;
+    private DemandeCollecteEntity demande;
 
     @BeforeEach
     void setUp() {
@@ -63,7 +62,7 @@ public class TourneeServiceTest {
         tourneeRequestDto.setDateTournee(LocalDate.now());
         tourneeRequestDto.setLivreurId(livreur.getPublicId());
         tourneeRequestDto.setZone("Nord");
-        tourneeRequestDto.setColisIds(new ArrayList<>());
+        tourneeRequestDto.setDemandeIds(new ArrayList<>());
 
         tournee = new Tournee();
         tournee.setId(UUID.randomUUID());
@@ -77,14 +76,13 @@ public class TourneeServiceTest {
         tourneeDto.setDateTournee(LocalDate.now());
         tourneeDto.setZone("Nord");
 
-        colis = new Colis();
-        colis.setId(UUID.randomUUID());
-        colis.setStatut(com.ipnet.enums.StatutColis.PRIS_EN_CHARGE);
+        demande = new DemandeCollecteEntity();
+        demande.setId(UUID.randomUUID());
     }
 
     @Test
     void testCreateTournee_Success() {
-        when(userRepository.findById(any())).thenReturn(java.util.Optional.of(livreur));
+        when(userRepository.findByPublicId(any())).thenReturn(java.util.Optional.of(livreur));
         when(tourneeMapper.toEntity(any(TourneeRequestDto.class))).thenReturn(tournee);
         when(tourneeRepository.save(any(Tournee.class))).thenReturn(tournee);
         when(tourneeRepository.findById(any())).thenReturn(java.util.Optional.of(tournee));
@@ -99,7 +97,7 @@ public class TourneeServiceTest {
 
     @Test
     void testCreateTournee_LivreurNotFound() {
-        when(userRepository.findById(any())).thenReturn(java.util.Optional.empty());
+        when(userRepository.findByPublicId(any())).thenReturn(java.util.Optional.empty());
 
         assertThrows(RuntimeException.class, () -> tourneeService.create(tourneeRequestDto));
     }
@@ -123,49 +121,47 @@ public class TourneeServiceTest {
     }
 
     @Test
-    void testAddColisToTournee_Success() {
+    void testAddDemandeToTournee_Success() {
         when(tourneeRepository.findById(any())).thenReturn(java.util.Optional.of(tournee));
-        when(colisRepository.findById(any())).thenReturn(java.util.Optional.of(colis));
-        when(colisRepository.save(any(Colis.class))).thenReturn(colis);
-        when(tourneeRepository.findById(any())).thenReturn(java.util.Optional.of(tournee));
+        when(demandeRepository.findById(any())).thenReturn(java.util.Optional.of(demande));
+        when(demandeRepository.save(any(DemandeCollecteEntity.class))).thenReturn(demande);
         when(tourneeMapper.toDto(any(Tournee.class))).thenReturn(tourneeDto);
 
-        TourneeDto result = tourneeService.addColisToTournee(tournee.getId(), colis.getId());
+        TourneeDto result = tourneeService.addDemandeToTournee(tournee.getId(), demande.getId());
 
         assertNotNull(result);
-        verify(colisRepository, times(1)).save(any(Colis.class));
+        verify(demandeRepository, times(1)).save(any(DemandeCollecteEntity.class));
     }
 
     @Test
-    void testAddColisToTournee_ColisDejaAssigne() {
-        colis.setTournee(tournee);
+    void testAddDemandeToTournee_DemandeDejaAssignee() {
+        demande.setTournee(tournee);
 
         when(tourneeRepository.findById(any())).thenReturn(java.util.Optional.of(tournee));
-        when(colisRepository.findById(any())).thenReturn(java.util.Optional.of(colis));
+        when(demandeRepository.findById(any())).thenReturn(java.util.Optional.of(demande));
 
-        assertThrows(RuntimeException.class, () -> tourneeService.addColisToTournee(tournee.getId(), colis.getId()));
+        assertThrows(RuntimeException.class,
+                () -> tourneeService.addDemandeToTournee(tournee.getId(), demande.getId()));
     }
 
     @Test
-    void testRemoveColisFromTournee_Success() {
-        colis.setTournee(tournee);
+    void testRemoveDemandeFromTournee_Success() {
+        demande.setTournee(tournee);
 
         when(tourneeRepository.findById(any())).thenReturn(java.util.Optional.of(tournee));
-        when(colisRepository.findById(any())).thenReturn(java.util.Optional.of(colis));
-        when(colisRepository.save(any(Colis.class))).thenReturn(colis);
-        when(tourneeRepository.findById(any())).thenReturn(java.util.Optional.of(tournee));
+        when(demandeRepository.findById(any())).thenReturn(java.util.Optional.of(demande));
+        when(demandeRepository.save(any(DemandeCollecteEntity.class))).thenReturn(demande);
         when(tourneeMapper.toDto(any(Tournee.class))).thenReturn(tourneeDto);
 
-        TourneeDto result = tourneeService.removeColisFromTournee(tournee.getId(), colis.getId());
+        TourneeDto result = tourneeService.removeDemandeFromTournee(tournee.getId(), demande.getId());
 
         assertNotNull(result);
-        verify(colisRepository, times(1)).save(any(Colis.class));
+        verify(demandeRepository, times(1)).save(any(DemandeCollecteEntity.class));
     }
 
     @Test
     void testDeleteTournee_Success() {
         when(tourneeRepository.findById(any())).thenReturn(java.util.Optional.of(tournee));
-        when(colisRepository.save(any(Colis.class))).thenReturn(colis);
 
         tourneeService.delete(tournee.getId());
 

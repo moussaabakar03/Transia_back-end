@@ -16,8 +16,8 @@ public class PaiementMapper {
     	dto.setModePaiement(entity.getModePaiement());
     	dto.setMontantVerse(entity.getMontant());
     	dto.setReference(entity.getReference());
-    	dto.setReservationId(entity.getReservation());
-    	
+    	dto.setReservationId(entity.getReservation() != null ? entity.getReservation().getId() : null);
+
         return dto;
     }
 }

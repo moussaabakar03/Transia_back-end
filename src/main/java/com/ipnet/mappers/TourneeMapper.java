@@ -17,7 +17,7 @@ public class TourneeMapper {
     private UserMapper userMapper;
 
     @Autowired(required = false)
-    private ColisMapper colisMapper;
+    private DemandeCollecteMapper demandeCollecteMapper;
 
     public TourneeDto toDto(Tournee entity) {
         if (entity == null) {
@@ -35,9 +35,9 @@ public class TourneeMapper {
             dto.setLivreurId(entity.getLivreur().getPublicId());
         }
 
-        if (entity.getColis() != null && colisMapper != null) {
-            dto.setColis(entity.getColis().stream()
-                    .map(colisMapper::toDto)
+        if (entity.getDemandesCollecte() != null && demandeCollecteMapper != null) {
+            dto.setDemandesCollecte(entity.getDemandesCollecte().stream()
+                    .map(demandeCollecteMapper::toDto)
                     .toList());
         }
 

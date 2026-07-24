@@ -1,12 +1,47 @@
 package com.ipnet.services.interfaces;
 
-import java.util.List;
+import com.ipnet.dto.SuiviTrajetDto;
+import com.ipnet.enums.StatutSuiviTrajet;
+
 import java.util.UUID;
 
-import com.ipnet.dto.SuiviTrajetDto;
-
 public interface SuiviTrajetServiceInterface {
-    SuiviTrajetDto demarrerSuivi(UUID trajetId);
-    SuiviTrajetDto mettreAJourStatut(Long suiviId, String nouveauStatut);
+
+    SuiviTrajetDto creerOuRecupererSuivi(UUID trajetId);
+
+    SuiviTrajetDto demarrerSuivi(
+            UUID trajetId,
+            String username
+    );
+
+    SuiviTrajetDto mettreEnPause(
+            Long suiviId,
+            String username
+    );
+
+    SuiviTrajetDto reprendreSuivi(
+            Long suiviId,
+            String username
+    );
+
+    SuiviTrajetDto terminerSuivi(
+            Long suiviId,
+            String username
+    );
+
+    SuiviTrajetDto annulerSuivi(
+            Long suiviId,
+            String username
+    );
+
+    SuiviTrajetDto mettreAJourStatut(
+            Long suiviId,
+            StatutSuiviTrajet statut,
+            String message,
+            String username
+    );
+
     SuiviTrajetDto getSuiviParTrajet(UUID trajetId);
+
+    SuiviTrajetDto getSuiviParId(Long suiviId);
 }

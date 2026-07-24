@@ -18,8 +18,17 @@ public class BilletMapper {
         if (entity.getReservation() != null) {
             dto.setReservationId(entity.getReservation().getId());
             var trajet = entity.getReservation().getTrajet();
-            if (trajet != null && trajet.getVilleDepart() != null && trajet.getVilleArrivee() != null) {
-                dto.setTrajetInfo(trajet.getVilleDepart().getNomVille() + " → " + trajet.getVilleArrivee().getNomVille());
+            if (trajet != null) {
+                dto.setTrajetId(trajet.getId());
+                if (trajet.getDateDepart() != null) {
+                    dto.setDateDepart(trajet.getDateDepart().toString());
+                }
+                if (trajet.getHeureDepart() != null) {
+                    dto.setHeureDepart(trajet.getHeureDepart().toString());
+                }
+                if (trajet.getVilleDepart() != null && trajet.getVilleArrivee() != null) {
+                    dto.setTrajetInfo(trajet.getVilleDepart().getNomVille() + " → " + trajet.getVilleArrivee().getNomVille());
+                }
             }
         }
         return dto;

@@ -3,7 +3,6 @@ package com.ipnet.dto;
 
 import com.ipnet.enums.StatutReservation;
 import com.ipnet.enums.TypeReservation;
-import com.ipnet.security.dto.UserDTO;
 
 
 import java.time.LocalDateTime;
@@ -16,14 +15,15 @@ public class ReservationResponseDto {
     private StatutReservation statut;
     private int nombrePlace;
     private UUID trajetId;
+    private TrajetResponseDto trajet;
     private List<BilletDto> billets;
-    
+
     private String nomResponsable;
-    //private UserDTO user;
-    //private PaiementRequestDto paiement;
+    private UUID userId;
+    private PaiementRequestDto paiement;
     private TypeReservation typeReservation;
-    
-    
+
+
 	public UUID getId() {
 		return id;
 	}
@@ -54,6 +54,12 @@ public class ReservationResponseDto {
 	public void setTrajetId(UUID trajetId) {
 		this.trajetId = trajetId;
 	}
+	public TrajetResponseDto getTrajet() {
+		return trajet;
+	}
+	public void setTrajet(TrajetResponseDto trajet) {
+		this.trajet = trajet;
+	}
 	public List<BilletDto> getBillets() {
 		return billets;
 	}
@@ -66,12 +72,11 @@ public class ReservationResponseDto {
 	public void setNomResponsable(String nomResponsable) {
 		this.nomResponsable = nomResponsable;
 	}
-	/*
-	public UserDTO getUser() {
-		return user;
+	public UUID getUserId() {
+		return userId;
 	}
-	public void setUser(UserDTO user) {
-		this.user = user;
+	public void setUserId(UUID userId) {
+		this.userId = userId;
 	}
 	public PaiementRequestDto getPaiement() {
 		return paiement;
@@ -79,7 +84,6 @@ public class ReservationResponseDto {
 	public void setPaiement(PaiementRequestDto paiement) {
 		this.paiement = paiement;
 	}
-	*/
 	public TypeReservation getTypeReservation() {
 		return typeReservation;
 	}
@@ -87,5 +91,9 @@ public class ReservationResponseDto {
 		this.typeReservation = typeReservation;
 	}
 
-    
+	/** Pratique pour le filtrage agence côté contrôleur (SecurityUtils.checkAgenceAccess). */
+	public UUID getAgenceId() {
+		return trajet != null ? trajet.getAgenceId() : null;
+	}
+
 }

@@ -10,7 +10,8 @@ public class TrajetRequestDto {
     private UUID villeDepartId;
     private UUID villeArriveeId;
     private UUID vehiculeId;
-    private Long chauffeurId;           // ← AJOUTÉ
+    private UUID chauffeurId;           // publicId de l'utilisateur (rôle CHAUFFEUR)
+    private UUID agenceId;
     private Double distance;
     private String dureeEstimee;
     private Double tarif;
@@ -28,8 +29,11 @@ public class TrajetRequestDto {
     public UUID getVehiculeId() { return vehiculeId; }
     public void setVehiculeId(UUID vehiculeId) { this.vehiculeId = vehiculeId; }
 
-    public Long getChauffeurId() { return chauffeurId; }
-    public void setChauffeurId(Long chauffeurId) { this.chauffeurId = chauffeurId; }
+    public UUID getChauffeurId() { return chauffeurId; }
+    public void setChauffeurId(UUID chauffeurId) { this.chauffeurId = chauffeurId; }
+
+    public UUID getAgenceId() { return agenceId; }
+    public void setAgenceId(UUID agenceId) { this.agenceId = agenceId; }
 
     public Double getDistance() { return distance; }
     public void setDistance(Double distance) { this.distance = distance; }

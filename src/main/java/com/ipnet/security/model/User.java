@@ -10,6 +10,7 @@ import org.hibernate.annotations.UuidGenerator;
 import com.ipnet.utils.BaseEntity;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -72,6 +73,13 @@ public class User extends BaseEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "statut_operationnel")
     private StatutOperationnel statutOperationnel;
+
+    // Verrouillage temporaire automatique après plusieurs échecs de connexion (distinct de statutCompte = BLOQUE, qui est une action admin permanente)
+    @Column(name = "tentatives_echouees")
+    private Integer tentativesEchouees = 0;
+
+    @Column(name = "verrouille_jusqua")
+    private Instant verrouilleJusqua;
 
     public User() {
     }
@@ -154,4 +162,10 @@ public class User extends BaseEntity implements Serializable {
 
     public StatutOperationnel getStatutOperationnel() { return statutOperationnel; }
     public void setStatutOperationnel(StatutOperationnel statutOperationnel) { this.statutOperationnel = statutOperationnel; }
+
+    public Integer getTentativesEchouees() { return tentativesEchouees; }
+    public void setTentativesEchouees(Integer tentativesEchouees) { this.tentativesEchouees = tentativesEchouees; }
+
+    public Instant getVerrouilleJusqua() { return verrouilleJusqua; }
+    public void setVerrouilleJusqua(Instant verrouilleJusqua) { this.verrouilleJusqua = verrouilleJusqua; }
 }

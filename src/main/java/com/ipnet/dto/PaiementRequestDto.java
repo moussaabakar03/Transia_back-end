@@ -2,32 +2,31 @@ package com.ipnet.dto;
 
 import java.util.UUID;
 
-import com.ipnet.entity.Reservation;
 import com.ipnet.enums.ModePaiement;
 import lombok.Data;
 
 
 @Data
 public class PaiementRequestDto {
-	
-	
+
+
     private UUID id;
-    private Reservation reservationId;
+    private UUID reservationId;
     private Double montantVerse;
-    private String reference; 
+    private String reference;
     private ModePaiement modePaiement;
 
-    
+
 	public UUID getId() {
 		return id;
 	}
 	public void setId(UUID id) {
 		this.id = id;
 	}
-	public Reservation getReservationId() {
+	public UUID getReservationId() {
 		return reservationId;
 	}
-	public void setReservationId(Reservation reservationId) {
+	public void setReservationId(UUID reservationId) {
 		this.reservationId = reservationId;
 	}
 	public Double getMontantVerse() {

@@ -3,6 +3,7 @@ package com.ipnet.services.implement;
 import com.ipnet.dto.BilletDto;
 import com.ipnet.entity.BilletEntity;
 import com.ipnet.enums.StatutBillet;
+import com.ipnet.exception.BilletNonValidableException;
 import com.ipnet.mappers.BilletMapper;
 import com.ipnet.repository.BilletRepository;
 import com.ipnet.security.exception.ResourceNotFoundException;
@@ -31,14 +32,27 @@ public class BilletServiceImpl implements BilletServiceInterface {
                 .orElseThrow(() -> new ResourceNotFoundException("Billet introuvable pour ce QR code"));
 
         if (billet.getStatut() == StatutBillet.ANNULE) {
-            throw new RuntimeException("Ce billet est annulé");
+            throw new BilletNonValidableException("Ce billet est annulé");
         }
         if (billet.getStatut() == StatutBillet.UTILISE) {
-            throw new RuntimeException("Ce billet a déjà été utilisé");
+            throw new BilletNonValidableException("Ce billet a déjà été utilisé");
+        }
+        if (billet.getStatut() == StatutBillet.EN_ATTENTE) {
+            throw new BilletNonValidableException("Ce billet n'est pas encore payé — paiement requis avant l'embarquement");
         }
 
         billet.setStatut(StatutBillet.UTILISE);
         return billetMapper.toDto(billetRepository.save(billet));
+    }
+
+    // Lecture seule, contrairement à validerBillet : sert au chauffeur pour comprendre pourquoi
+    // un QR scanné n'appartient pas au trajet en cours (billet d'un autre trajet, pas encore payé...)
+    // sans marquer le billet comme utilisé.
+    @Override
+    public BilletDto rechercherParQrCode(String qrCode) {
+        BilletEntity billet = billetRepository.findByQrCode(qrCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Billet introuvable pour ce QR code"));
+        return billetMapper.toDto(billet);
     }
 
     @Override

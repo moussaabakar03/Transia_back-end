@@ -19,6 +19,9 @@ public class VehiculeDto {
     private String villeBaseNom;
     private UUID villeActuelleId;
     private String villeActuelleNom;
+    private Double kilometrage;
+    private UUID agenceId;
+    private String agenceNom;
 
     public VehiculeDto() {}
 
@@ -57,4 +60,13 @@ public class VehiculeDto {
 
     public String getVilleActuelleNom() { return villeActuelleNom; }
     public void setVilleActuelleNom(String villeActuelleNom) { this.villeActuelleNom = villeActuelleNom; }
+
+    public Double getKilometrage() { return kilometrage; }
+    public void setKilometrage(Double kilometrage) { this.kilometrage = kilometrage; }
+
+    public UUID getAgenceId() { return agenceId; }
+    public void setAgenceId(UUID agenceId) { this.agenceId = agenceId; }
+
+    public String getAgenceNom() { return agenceNom; }
+    public void setAgenceNom(String agenceNom) { this.agenceNom = agenceNom; }
 }

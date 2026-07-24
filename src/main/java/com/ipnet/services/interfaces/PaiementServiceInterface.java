@@ -9,6 +9,7 @@ import com.ipnet.dto.ReservationResponseDto;
 public interface PaiementServiceInterface {
 
     public void validerPaiementCaisse(PaiementRequestDto dto);
+    public ReservationResponseDto payerEnLigne(PaiementRequestDto dto);
     public List<PaiementRequestDto> listePaiementCaisse();
     public PaiementRequestDto update(PaiementRequestDto paiementRequestDto, UUID id);
 	public void delete(UUID id);

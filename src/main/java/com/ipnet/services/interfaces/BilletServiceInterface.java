@@ -7,4 +7,5 @@ import java.util.UUID;
 public interface BilletServiceInterface {
     BilletDto validerBillet(String qrCode);
     List<BilletDto> getBilletsByTrajet(UUID trajetId);
+    BilletDto rechercherParQrCode(String qrCode);
 }

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 import com.ipnet.dto.ReservationResponseDto;
 import com.ipnet.entity.Reservation;
-import com.ipnet.security.mappers.UserMapper;
 
 @Component
 public class ReservationMapper {
@@ -15,10 +14,10 @@ public class ReservationMapper {
     @Autowired
     private BilletMapper billetMapper;
 
-    @Autowired(required = false)   // S’ils n’existent pas encore, on les mettra en place
-    private UserMapper userMapper;
+    @Autowired
+    private TrajetMapper trajetMapper;
 
-    @Autowired(required = false)
+    @Autowired
     private PaiementMapper paiementMapper;
 
     public ReservationResponseDto toDto(Reservation entity) {
@@ -27,9 +26,21 @@ public class ReservationMapper {
         dto.setStatut(entity.getStatut());
         dto.setNombrePlace(entity.getNombrePlace());
         dto.setDateReservation(entity.getDateReservation());
-        dto.setTrajetId(entity.getTrajet().getId());
         dto.setNomResponsable(entity.getNomResponsable());
         dto.setTypeReservation(entity.getTypeReservation());
+
+        if (entity.getTrajet() != null) {
+            dto.setTrajetId(entity.getTrajet().getId());
+            dto.setTrajet(trajetMapper.toResponse(entity.getTrajet()));
+        }
+
+        if (entity.getUser() != null) {
+            dto.setUserId(entity.getUser().getPublicId());
+        }
+
+        if (entity.getPaiement() != null) {
+            dto.setPaiement(paiementMapper.toDto(entity.getPaiement()));
+        }
 
         // Conversion des billets
         if (entity.getBillets() != null) {
@@ -40,7 +51,7 @@ public class ReservationMapper {
             dto.setBillets(List.of());
         }
 
-        
+
         return dto;
     }
 }

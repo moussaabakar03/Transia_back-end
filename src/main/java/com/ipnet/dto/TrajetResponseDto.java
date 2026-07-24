@@ -11,7 +11,10 @@ public class TrajetResponseDto {
     private VilleDto villeDepart;
     private VilleDto villeArrivee;
     private VehiculeDto vehicule;
-    private Long chauffeurId;         
+    private UUID chauffeurId;
+    private String chauffeurNom;
+    private UUID agenceId;
+    private String agenceNom;
     private Double distance;
     private String dureeEstimee;
     private Double tarif;
@@ -32,8 +35,17 @@ public class TrajetResponseDto {
     public VehiculeDto getVehicule() { return vehicule; }
     public void setVehicule(VehiculeDto vehicule) { this.vehicule = vehicule; }
 
-    public Long getChauffeurId() { return chauffeurId; }
-    public void setChauffeurId(Long chauffeurId) { this.chauffeurId = chauffeurId; }
+    public UUID getChauffeurId() { return chauffeurId; }
+    public void setChauffeurId(UUID chauffeurId) { this.chauffeurId = chauffeurId; }
+
+    public String getChauffeurNom() { return chauffeurNom; }
+    public void setChauffeurNom(String chauffeurNom) { this.chauffeurNom = chauffeurNom; }
+
+    public UUID getAgenceId() { return agenceId; }
+    public void setAgenceId(UUID agenceId) { this.agenceId = agenceId; }
+
+    public String getAgenceNom() { return agenceNom; }
+    public void setAgenceNom(String agenceNom) { this.agenceNom = agenceNom; }
 
     public Double getDistance() { return distance; }
     public void setDistance(Double distance) { this.distance = distance; }

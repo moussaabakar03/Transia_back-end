@@ -13,6 +13,9 @@ public class BilletDto {
     private String numeroSiege;
     private UUID reservationId;
     private String trajetInfo;
+    private UUID trajetId;
+    private String dateDepart;
+    private String heureDepart;
 
     
     public BilletDto() {}
@@ -65,5 +68,14 @@ public class BilletDto {
 
     public String getTrajetInfo() { return trajetInfo; }
     public void setTrajetInfo(String trajetInfo) { this.trajetInfo = trajetInfo; }
+
+    public UUID getTrajetId() { return trajetId; }
+    public void setTrajetId(UUID trajetId) { this.trajetId = trajetId; }
+
+    public String getDateDepart() { return dateDepart; }
+    public void setDateDepart(String dateDepart) { this.dateDepart = dateDepart; }
+
+    public String getHeureDepart() { return heureDepart; }
+    public void setHeureDepart(String heureDepart) { this.heureDepart = heureDepart; }
 }
 

@@ -4,23 +4,15 @@ package com.ipnet.dto;
 import java.util.List;
 import java.util.UUID;
 
-import com.ipnet.enums.TypeReservation;
-
 public class ReservationRequestDto {
-    private Long userId;          
-    private UUID trajetId;       
-    private int nombrePlace;     
-    private String nomResponsable; 
-    private List<String> nomsPassagers; 
-    private TypeReservation typeReservation;
+    private UUID trajetId;
+    private int nombrePlace;
+    private String nomResponsable;
+    private List<String> nomsPassagers;
 
     private List<String> siegesChoisis;  // facultatif, peut être vide ou null
 
     public ReservationRequestDto() {}
-
-    
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
 
     public UUID getTrajetId() { return trajetId; }
     public void setTrajetId(UUID trajetId) { this.trajetId = trajetId; }
@@ -34,14 +26,6 @@ public class ReservationRequestDto {
     public List<String> getNomsPassagers() { return nomsPassagers; }
     public void setNomsPassagers(List<String> nomsPassagers) { this.nomsPassagers = nomsPassagers; }
 
-	public TypeReservation getTypeReservation() {
-		return typeReservation;
-	}
-
-	public void setTypeReservation(TypeReservation typeReservation) {
-		this.typeReservation = typeReservation;
-	}
-    
     public List<String> getSiegesChoisis() { return siegesChoisis; }
     
     public void setSiegesChoisis(List<String> siegesChoisis) { this.siegesChoisis = siegesChoisis; }

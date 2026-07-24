@@ -7,15 +7,9 @@ public class VilleDto {
     private UUID id;
     private String nomVille;
     private String region;
+    private String pays;
 
     public VilleDto() {
-    }
-
-    public VilleDto(UUID id, String nomVille, String region) {
-        super();
-        this.id = id;
-        this.nomVille = nomVille;
-        this.region = region;
     }
 
     // Getters et Setters
@@ -27,4 +21,7 @@ public class VilleDto {
 
     public String getRegion() { return region; }
     public void setRegion(String region) { this.region = region; }
+
+    public String getPays() { return pays; }
+    public void setPays(String pays) { this.pays = pays; }
 }

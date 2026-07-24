@@ -5,23 +5,31 @@ import java.util.UUID;
 
 import com.ipnet.dto.ColisDto;
 import com.ipnet.dto.ColisRequestDto;
+import com.ipnet.dto.ColisStatutDto;
 import com.ipnet.dto.HistoriqueColisDto;
-import com.ipnet.enums.ModeDepot;
 import com.ipnet.enums.StatutColis;
+import com.ipnet.enums.TranchePoids;
 
 public interface ColisServiceInterface {
-    ColisDto create(ColisRequestDto dto);
-    ColisDto createDemandeEnlevement(ColisRequestDto dto);
+    ColisDto enregistrerColis(ColisRequestDto dto);
+    ColisDto confirmerPeseeAjusterPrix(UUID colisId, Double poidsReel, TranchePoids trancheReelle);
+    ColisDto chargerColisInTrajet(UUID colisId, UUID trajetId);
+    ColisDto receptionnerColis(UUID colisId);
+    ColisDto demarrerLivraison(UUID colisId, UUID livreurId);
+    ColisDto confirmerLivraison(UUID colisId);
+    ColisStatutDto getStatutColis(String numeroSuivi);
+    List<ColisDto> listerColisParAgence(UUID agenceId);
+    List<ColisDto> listerColisParStatut(StatutColis statut);
+
+    // Absent de la spec initiale (endpoints listés = agent/admin uniquement) mais nécessaire :
+    // sans ça, le client mobile n'a aucun moyen de lister les colis qu'il a lui-même envoyés.
+    List<ColisDto> listerMesColis();
+
+    // Idem côté livreur : sans ça, aucun moyen de lister ses livraisons en cours.
+    List<ColisDto> listerMesLivraisons();
+
+    // Conservés de l'existant : pas dans la spec mais toujours utiles (détail, audit, annulation)
     ColisDto getById(UUID id);
-    ColisDto getByNumeroSuivi(String numeroSuivi);
-    List<ColisDto> listColis();
-    List<ColisDto> filterColis(StatutColis statut, UUID livreurId, UUID expediteurId, String search);
-    List<ColisDto> findNearby(Double latitude, Double longitude, Double distanceKm);
-    ColisDto updatePartial(UUID id, ColisRequestDto dto);
-    ColisDto assignerLivreur(UUID colisId, UUID livreurId);
-    ColisDto collecter(UUID colisId, String commentaire);
-    ColisDto livrer(UUID colisId, String commentaire);
     List<HistoriqueColisDto> getHistorique(UUID colisId);
     void annulerColis(UUID colisId);
-    String generateNumeroSuivi();
 }
