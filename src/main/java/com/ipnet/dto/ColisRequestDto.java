@@ -1,179 +1,57 @@
 package com.ipnet.dto;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.ipnet.enums.ModeDepot;
 import com.ipnet.enums.ModeRemise;
+import com.ipnet.enums.TranchePoids;
 
 public class ColisRequestDto {
-    private UUID expediteurId;
-    private String nomDestinataire;
-    private String adresseDestinataire;
-    private String telephoneDestinataire;
-    private Double poids;
-    private Double longueur;
-    private Double largeur;
-    private Double hauteur;
-    private String remarques;
-    private ModeDepot modeDepot;
-    private String adresseCollecte;
-    private String telephoneCollecte;
-    private LocalDateTime dateHeureCollecteSouhaitee;
-    private Double latitudeDestinataire;
-    private Double longitudeDestinataire;
-    private Double latitudeCollecte;
-    private Double longitudeCollecte;
-    private UUID villeDepartId;
-    private UUID villeArriveeId;
-    private UUID trajetId;
+    private String description;
+    private TranchePoids tranchePoids;
+    private String dimensions;
     private ModeRemise modeRemise;
+    private String expediteurNom;
+    private String expediteurTelephone;
+    private String destinataireNom;
+    private String destinataireTelephone;
+    private String destinataireAdresse;
+    private UUID agenceDepartId;
+    private UUID agenceArriveeId;
+    private boolean collecteDomicile;
 
-    public UUID getExpediteurId() {
-        return expediteurId;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setExpediteurId(UUID expediteurId) {
-        this.expediteurId = expediteurId;
-    }
+    public TranchePoids getTranchePoids() { return tranchePoids; }
+    public void setTranchePoids(TranchePoids tranchePoids) { this.tranchePoids = tranchePoids; }
 
-    public String getNomDestinataire() {
-        return nomDestinataire;
-    }
-
-    public void setNomDestinataire(String nomDestinataire) {
-        this.nomDestinataire = nomDestinataire;
-    }
-
-    public String getAdresseDestinataire() {
-        return adresseDestinataire;
-    }
-
-    public void setAdresseDestinataire(String adresseDestinataire) {
-        this.adresseDestinataire = adresseDestinataire;
-    }
-
-    public String getTelephoneDestinataire() {
-        return telephoneDestinataire;
-    }
-
-    public void setTelephoneDestinataire(String telephoneDestinataire) {
-        this.telephoneDestinataire = telephoneDestinataire;
-    }
-
-    public Double getPoids() {
-        return poids;
-    }
-
-    public void setPoids(Double poids) {
-        this.poids = poids;
-    }
-
-    public Double getLongueur() {
-        return longueur;
-    }
-
-    public void setLongueur(Double longueur) {
-        this.longueur = longueur;
-    }
-
-    public Double getLargeur() {
-        return largeur;
-    }
-
-    public void setLargeur(Double largeur) {
-        this.largeur = largeur;
-    }
-
-    public Double getHauteur() {
-        return hauteur;
-    }
-
-    public void setHauteur(Double hauteur) {
-        this.hauteur = hauteur;
-    }
-
-    public String getRemarques() {
-        return remarques;
-    }
-
-    public void setRemarques(String remarques) {
-        this.remarques = remarques;
-    }
-
-    public ModeDepot getModeDepot() {
-        return modeDepot;
-    }
-
-    public void setModeDepot(ModeDepot modeDepot) {
-        this.modeDepot = modeDepot;
-    }
-
-    public String getAdresseCollecte() {
-        return adresseCollecte;
-    }
-
-    public void setAdresseCollecte(String adresseCollecte) {
-        this.adresseCollecte = adresseCollecte;
-    }
-
-    public String getTelephoneCollecte() {
-        return telephoneCollecte;
-    }
-
-    public void setTelephoneCollecte(String telephoneCollecte) {
-        this.telephoneCollecte = telephoneCollecte;
-    }
-
-    public LocalDateTime getDateHeureCollecteSouhaitee() {
-        return dateHeureCollecteSouhaitee;
-    }
-
-    public void setDateHeureCollecteSouhaitee(LocalDateTime dateHeureCollecteSouhaitee) {
-        this.dateHeureCollecteSouhaitee = dateHeureCollecteSouhaitee;
-    }
-
-    public Double getLatitudeDestinataire() {
-        return latitudeDestinataire;
-    }
-
-    public void setLatitudeDestinataire(Double latitudeDestinataire) {
-        this.latitudeDestinataire = latitudeDestinataire;
-    }
-
-    public Double getLongitudeDestinataire() {
-        return longitudeDestinataire;
-    }
-
-    public void setLongitudeDestinataire(Double longitudeDestinataire) {
-        this.longitudeDestinataire = longitudeDestinataire;
-    }
-
-    public Double getLatitudeCollecte() {
-        return latitudeCollecte;
-    }
-
-    public void setLatitudeCollecte(Double latitudeCollecte) {
-        this.latitudeCollecte = latitudeCollecte;
-    }
-
-    public Double getLongitudeCollecte() {
-        return longitudeCollecte;
-    }
-
-    public void setLongitudeCollecte(Double longitudeCollecte) {
-        this.longitudeCollecte = longitudeCollecte;
-    }
-
-    public UUID getVilleDepartId() { return villeDepartId; }
-    public void setVilleDepartId(UUID villeDepartId) { this.villeDepartId = villeDepartId; }
-
-    public UUID getVilleArriveeId() { return villeArriveeId; }
-    public void setVilleArriveeId(UUID villeArriveeId) { this.villeArriveeId = villeArriveeId; }
-
-    public UUID getTrajetId() { return trajetId; }
-    public void setTrajetId(UUID trajetId) { this.trajetId = trajetId; }
+    public String getDimensions() { return dimensions; }
+    public void setDimensions(String dimensions) { this.dimensions = dimensions; }
 
     public ModeRemise getModeRemise() { return modeRemise; }
     public void setModeRemise(ModeRemise modeRemise) { this.modeRemise = modeRemise; }
+
+    public String getExpediteurNom() { return expediteurNom; }
+    public void setExpediteurNom(String expediteurNom) { this.expediteurNom = expediteurNom; }
+
+    public String getExpediteurTelephone() { return expediteurTelephone; }
+    public void setExpediteurTelephone(String expediteurTelephone) { this.expediteurTelephone = expediteurTelephone; }
+
+    public String getDestinataireNom() { return destinataireNom; }
+    public void setDestinataireNom(String destinataireNom) { this.destinataireNom = destinataireNom; }
+
+    public String getDestinataireTelephone() { return destinataireTelephone; }
+    public void setDestinataireTelephone(String destinataireTelephone) { this.destinataireTelephone = destinataireTelephone; }
+
+    public String getDestinataireAdresse() { return destinataireAdresse; }
+    public void setDestinataireAdresse(String destinataireAdresse) { this.destinataireAdresse = destinataireAdresse; }
+
+    public UUID getAgenceDepartId() { return agenceDepartId; }
+    public void setAgenceDepartId(UUID agenceDepartId) { this.agenceDepartId = agenceDepartId; }
+
+    public UUID getAgenceArriveeId() { return agenceArriveeId; }
+    public void setAgenceArriveeId(UUID agenceArriveeId) { this.agenceArriveeId = agenceArriveeId; }
+
+    public boolean isCollecteDomicile() { return collecteDomicile; }
+    public void setCollecteDomicile(boolean collecteDomicile) { this.collecteDomicile = collecteDomicile; }
 }

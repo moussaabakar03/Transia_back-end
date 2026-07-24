@@ -38,7 +38,7 @@ public class Tournee extends BaseEntity {
     private String zone;
 
     @OneToMany(mappedBy = "tournee", cascade = CascadeType.ALL)
-    private List<Colis> colis = new ArrayList<>();
+    private List<DemandeCollecteEntity> demandesCollecte = new ArrayList<>();
 
     @Column
     private String statut;
@@ -79,12 +79,12 @@ public class Tournee extends BaseEntity {
         this.zone = zone;
     }
 
-    public List<Colis> getColis() {
-        return colis;
+    public List<DemandeCollecteEntity> getDemandesCollecte() {
+        return demandesCollecte;
     }
 
-    public void setColis(List<Colis> colis) {
-        this.colis = colis;
+    public void setDemandesCollecte(List<DemandeCollecteEntity> demandesCollecte) {
+        this.demandesCollecte = demandesCollecte;
     }
 
     public String getStatut() {

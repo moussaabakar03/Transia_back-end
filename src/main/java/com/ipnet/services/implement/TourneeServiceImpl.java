@@ -8,11 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ipnet.dto.TourneeDto;
 import com.ipnet.dto.TourneeRequestDto;
-import com.ipnet.entity.Colis;
+import com.ipnet.entity.DemandeCollecteEntity;
 import com.ipnet.entity.Tournee;
 import com.ipnet.mappers.TourneeMapper;
-import com.ipnet.repository.ColisRepository;
+import com.ipnet.repository.DemandeCollecteRepository;
 import com.ipnet.repository.TourneeRepository;
+import com.ipnet.security.exception.ResourceNotFoundException;
 import com.ipnet.security.model.User;
 import com.ipnet.security.repository.UserRepository;
 import com.ipnet.services.interfaces.TourneeServiceInterface;
@@ -21,17 +22,17 @@ import com.ipnet.services.interfaces.TourneeServiceInterface;
 public class TourneeServiceImpl implements TourneeServiceInterface {
 
     private final TourneeRepository tourneeRepository;
-    private final ColisRepository colisRepository;
+    private final DemandeCollecteRepository demandeRepository;
     private final UserRepository userRepository;
     private final TourneeMapper tourneeMapper;
 
     public TourneeServiceImpl(
             TourneeRepository tourneeRepository,
-            ColisRepository colisRepository,
+            DemandeCollecteRepository demandeRepository,
             UserRepository userRepository,
             TourneeMapper tourneeMapper) {
         this.tourneeRepository = tourneeRepository;
-        this.colisRepository = colisRepository;
+        this.demandeRepository = demandeRepository;
         this.userRepository = userRepository;
         this.tourneeMapper = tourneeMapper;
     }
@@ -40,7 +41,7 @@ public class TourneeServiceImpl implements TourneeServiceInterface {
     @Transactional
     public TourneeDto create(TourneeRequestDto dto) {
         User livreur = userRepository.findByPublicId(dto.getLivreurId())
-                .orElseThrow(() -> new RuntimeException("Livreur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Livreur non trouvé"));
 
         Tournee tournee = tourneeMapper.toEntity(dto);
         tournee.setLivreur(livreur);
@@ -48,10 +49,9 @@ public class TourneeServiceImpl implements TourneeServiceInterface {
 
         Tournee savedTournee = tourneeRepository.save(tournee);
 
-        // Ajouter les colis à la tournée
-        if (dto.getColisIds() != null && !dto.getColisIds().isEmpty()) {
-            for (UUID colisId : dto.getColisIds()) {
-                addColisToTournee(savedTournee.getId(), colisId);
+        if (dto.getDemandeIds() != null && !dto.getDemandeIds().isEmpty()) {
+            for (UUID demandeId : dto.getDemandeIds()) {
+                addDemandeToTournee(savedTournee.getId(), demandeId);
             }
         }
 
@@ -61,7 +61,7 @@ public class TourneeServiceImpl implements TourneeServiceInterface {
     @Override
     public TourneeDto getById(UUID id) {
         Tournee tournee = tourneeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tournée non trouvée avec l'ID : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Tournée non trouvée avec l'ID : " + id));
         return tourneeMapper.toDto(tournee);
     }
 
@@ -79,7 +79,7 @@ public class TourneeServiceImpl implements TourneeServiceInterface {
     @Transactional
     public TourneeDto updatePartial(UUID id, TourneeRequestDto dto) {
         Tournee tournee = tourneeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tournée non trouvée avec l'ID : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Tournée non trouvée avec l'ID : " + id));
 
         if (dto.getDateTournee() != null) {
             tournee.setDateTournee(dto.getDateTournee());
@@ -89,7 +89,7 @@ public class TourneeServiceImpl implements TourneeServiceInterface {
         }
         if (dto.getLivreurId() != null) {
             User livreur = userRepository.findByPublicId(dto.getLivreurId())
-                    .orElseThrow(() -> new RuntimeException("Livreur non trouvé"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Livreur non trouvé"));
             tournee.setLivreur(livreur);
         }
 
@@ -100,13 +100,12 @@ public class TourneeServiceImpl implements TourneeServiceInterface {
     @Transactional
     public void delete(UUID id) {
         Tournee tournee = tourneeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tournée non trouvée avec l'ID : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Tournée non trouvée avec l'ID : " + id));
 
-        // Retirer les colis de la tournée avant suppression
-        if (tournee.getColis() != null) {
-            for (Colis colis : tournee.getColis()) {
-                colis.setTournee(null);
-                colisRepository.save(colis);
+        if (tournee.getDemandesCollecte() != null) {
+            for (DemandeCollecteEntity demande : tournee.getDemandesCollecte()) {
+                demande.setTournee(null);
+                demandeRepository.save(demande);
             }
         }
 
@@ -115,38 +114,38 @@ public class TourneeServiceImpl implements TourneeServiceInterface {
 
     @Override
     @Transactional
-    public TourneeDto addColisToTournee(UUID tourneeId, UUID colisId) {
+    public TourneeDto addDemandeToTournee(UUID tourneeId, UUID demandeId) {
         Tournee tournee = tourneeRepository.findById(tourneeId)
-                .orElseThrow(() -> new RuntimeException("Tournée non trouvée avec l'ID : " + tourneeId));
+                .orElseThrow(() -> new ResourceNotFoundException("Tournée non trouvée avec l'ID : " + tourneeId));
 
-        Colis colis = colisRepository.findById(colisId)
-                .orElseThrow(() -> new RuntimeException("Colis non trouvé avec l'ID : " + colisId));
+        DemandeCollecteEntity demande = demandeRepository.findById(demandeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Demande de collecte non trouvée avec l'ID : " + demandeId));
 
-        if (colis.getTournee() != null) {
-            throw new RuntimeException("Le colis est déjà assigné à une tournée");
+        if (demande.getTournee() != null) {
+            throw new IllegalStateException("Cette demande est déjà assignée à une tournée");
         }
 
-        colis.setTournee(tournee);
-        colisRepository.save(colis);
+        demande.setTournee(tournee);
+        demandeRepository.save(demande);
 
         return tourneeMapper.toDto(tourneeRepository.findById(tourneeId).orElse(tournee));
     }
 
     @Override
     @Transactional
-    public TourneeDto removeColisFromTournee(UUID tourneeId, UUID colisId) {
+    public TourneeDto removeDemandeFromTournee(UUID tourneeId, UUID demandeId) {
         Tournee tournee = tourneeRepository.findById(tourneeId)
-                .orElseThrow(() -> new RuntimeException("Tournée non trouvée avec l'ID : " + tourneeId));
+                .orElseThrow(() -> new ResourceNotFoundException("Tournée non trouvée avec l'ID : " + tourneeId));
 
-        Colis colis = colisRepository.findById(colisId)
-                .orElseThrow(() -> new RuntimeException("Colis non trouvé avec l'ID : " + colisId));
+        DemandeCollecteEntity demande = demandeRepository.findById(demandeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Demande de collecte non trouvée avec l'ID : " + demandeId));
 
-        if (colis.getTournee() == null || !tournee.getId().equals(colis.getTournee().getId())) {
-            throw new RuntimeException("Le colis n'est pas assigné à cette tournée");
+        if (demande.getTournee() == null || !tournee.getId().equals(demande.getTournee().getId())) {
+            throw new IllegalStateException("Cette demande n'est pas assignée à cette tournée");
         }
 
-        colis.setTournee(null);
-        colisRepository.save(colis);
+        demande.setTournee(null);
+        demandeRepository.save(demande);
 
         return tourneeMapper.toDto(tourneeRepository.findById(tourneeId).orElse(tournee));
     }

@@ -8,7 +8,7 @@ public class TourneeRequestDto {
     private LocalDate dateTournee;
     private UUID livreurId;
     private String zone;
-    private List<UUID> colisIds;
+    private List<UUID> demandeIds;
 
     public LocalDate getDateTournee() {
         return dateTournee;
@@ -34,11 +34,11 @@ public class TourneeRequestDto {
         this.zone = zone;
     }
 
-    public List<UUID> getColisIds() {
-        return colisIds;
+    public List<UUID> getDemandeIds() {
+        return demandeIds;
     }
 
-    public void setColisIds(List<UUID> colisIds) {
-        this.colisIds = colisIds;
+    public void setDemandeIds(List<UUID> demandeIds) {
+        this.demandeIds = demandeIds;
     }
 }

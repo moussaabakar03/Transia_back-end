@@ -1,32 +1,40 @@
 package com.ipnet.services.implement;
 
 import java.time.LocalDateTime;
-import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ipnet.dto.ColisDto;
 import com.ipnet.dto.ColisRequestDto;
+import com.ipnet.dto.ColisStatutDto;
+import com.ipnet.dto.EstimationPrixDto;
 import com.ipnet.dto.HistoriqueColisDto;
+import com.ipnet.entity.AgenceEntity;
 import com.ipnet.entity.Colis;
 import com.ipnet.entity.HistoriqueColis;
-import com.ipnet.enums.ModeDepot;
-import com.ipnet.enums.StatutColis;
 import com.ipnet.entity.TrajetEntity;
-import com.ipnet.entity.VilleEntity;
+import com.ipnet.enums.StatutColis;
+import com.ipnet.enums.StatutPaiementColis;
+import com.ipnet.enums.TranchePoids;
+import com.ipnet.exception.ColisTransitionInvalideException;
 import com.ipnet.mappers.ColisMapper;
 import com.ipnet.mappers.HistoriqueColisMapper;
+import com.ipnet.repository.AgenceRepository;
 import com.ipnet.repository.ColisRepository;
 import com.ipnet.repository.HistoriqueColisRepository;
 import com.ipnet.repository.TrajetRepository;
-import com.ipnet.repository.VilleRepository;
+import com.ipnet.security.SecurityUtils;
+import com.ipnet.security.exception.ResourceNotFoundException;
 import com.ipnet.security.model.User;
 import com.ipnet.security.repository.UserRepository;
 import com.ipnet.services.interfaces.ColisServiceInterface;
+import com.ipnet.services.interfaces.NotificationServiceInterface;
+import com.ipnet.services.interfaces.TarifExpeditionServiceInterface;
 
 @Service
 public class ColisServiceImpl implements ColisServiceInterface {
@@ -34,272 +42,315 @@ public class ColisServiceImpl implements ColisServiceInterface {
     private final ColisRepository colisRepository;
     private final HistoriqueColisRepository historiqueColisRepository;
     private final UserRepository userRepository;
+    private final AgenceRepository agenceRepository;
+    private final TrajetRepository trajetRepository;
+    private final TarifExpeditionServiceInterface tarifExpeditionService;
     private final ColisMapper colisMapper;
     private final HistoriqueColisMapper historiqueColisMapper;
-    private final VilleRepository villeRepository;
-    private final TrajetRepository trajetRepository;
+    private final NotificationServiceInterface notificationService;
 
     public ColisServiceImpl(
             ColisRepository colisRepository,
             HistoriqueColisRepository historiqueColisRepository,
             UserRepository userRepository,
+            AgenceRepository agenceRepository,
+            TrajetRepository trajetRepository,
+            TarifExpeditionServiceInterface tarifExpeditionService,
             ColisMapper colisMapper,
             HistoriqueColisMapper historiqueColisMapper,
-            VilleRepository villeRepository,
-            TrajetRepository trajetRepository) {
+            NotificationServiceInterface notificationService) {
         this.colisRepository = colisRepository;
         this.historiqueColisRepository = historiqueColisRepository;
         this.userRepository = userRepository;
+        this.agenceRepository = agenceRepository;
+        this.trajetRepository = trajetRepository;
+        this.tarifExpeditionService = tarifExpeditionService;
         this.colisMapper = colisMapper;
         this.historiqueColisMapper = historiqueColisMapper;
-        this.villeRepository = villeRepository;
-        this.trajetRepository = trajetRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
     @Transactional
-    public ColisDto create(ColisRequestDto dto) {
-        User expediteur;
-        if (dto.getExpediteurId() != null) {
-            expediteur = userRepository.findByPublicId(dto.getExpediteurId())
-                    .orElseThrow(() -> new RuntimeException("Expéditeur non trouvé"));
-        } else {
-            String currentTelephone = SecurityContextHolder.getContext().getAuthentication().getName();
-            expediteur = userRepository.findByTelephone(currentTelephone)
-                    .orElseThrow(() -> new RuntimeException("Utilisateur authentifié introuvable"));
+    public ColisDto enregistrerColis(ColisRequestDto dto) {
+        if (dto.getDestinataireAdresse() == null || dto.getDestinataireAdresse().isBlank()) {
+            if (dto.getModeRemise() != null && dto.getModeRemise().name().equals("LIVRAISON_DOMICILE")) {
+                throw new IllegalArgumentException(
+                        "L'adresse du destinataire est obligatoire pour une livraison à domicile");
+            }
         }
 
-        Colis colis = colisMapper.toEntity(dto);
-        colis.setExpediteur(expediteur);
+        AgenceEntity agenceDepart = getAgence(dto.getAgenceDepartId());
+        AgenceEntity agenceArrivee = getAgence(dto.getAgenceArriveeId());
+
+        EstimationPrixDto estimation = tarifExpeditionService.estimerPrix(
+                agenceDepart.getVille().getId(),
+                agenceArrivee.getVille().getId(),
+                dto.getTranchePoids(),
+                dto.getModeRemise(),
+                dto.isCollecteDomicile());
+
+        User agent = SecurityUtils.getConnectedUser(userRepository);
+
+        Colis colis = new Colis();
         colis.setNumeroSuivi(generateNumeroSuivi());
-        colis.setDateCreationColis(LocalDateTime.now());
-        colis.setStatut(StatutColis.EN_ATTENTE_COLLECTE);
-        colis.setQrCode(UUID.randomUUID().toString());
+        colis.setDescription(dto.getDescription());
+        colis.setTranchePoids(dto.getTranchePoids());
+        colis.setDimensions(dto.getDimensions());
         colis.setModeRemise(dto.getModeRemise());
+        colis.setExpediteurNom(dto.getExpediteurNom());
+        colis.setExpediteurTelephone(dto.getExpediteurTelephone());
+        colis.setDestinataireNom(dto.getDestinataireNom());
+        colis.setDestinataireTelephone(dto.getDestinataireTelephone());
+        colis.setDestinataireAdresse(dto.getDestinataireAdresse());
+        colis.setAgenceDepart(agenceDepart);
+        colis.setAgenceArrivee(agenceArrivee);
+        colis.setAgentEnregistreur(agent);
+        colis.setQrCode(UUID.randomUUID().toString());
+        colis.setPrixEstime(estimation.getTotalEstime());
+        colis.setFraisCollecte(estimation.getFraisCollecte());
+        colis.setFraisLivraison(estimation.getFraisLivraison());
 
-        if (dto.getVilleDepartId() != null) {
-            VilleEntity depart = villeRepository.findById(dto.getVilleDepartId())
-                    .orElseThrow(() -> new RuntimeException("Ville de départ introuvable"));
-            colis.setVilleDepart(depart);
-        }
-        if (dto.getVilleArriveeId() != null) {
-            VilleEntity arrivee = villeRepository.findById(dto.getVilleArriveeId())
-                    .orElseThrow(() -> new RuntimeException("Ville d'arrivée introuvable"));
-            colis.setVilleArrivee(arrivee);
-        }
-        if (dto.getTrajetId() != null) {
-            TrajetEntity trajet = trajetRepository.findById(dto.getTrajetId())
-                    .orElseThrow(() -> new RuntimeException("Trajet introuvable"));
-            colis.setTrajet(trajet);
-        }
+        Colis saved = colisRepository.save(colis);
+        addHistorique(saved, null, StatutColis.EN_ATTENTE_DEPOT, agent, "Enregistrement du colis");
 
-        Colis savedColis = colisRepository.save(colis);
-        addHistorique(savedColis, null, StatutColis.EN_ATTENTE_COLLECTE, null, "Création du colis");
-
-        return colisMapper.toDto(savedColis);
+        return colisMapper.toDto(saved);
     }
 
     @Override
     @Transactional
-    public ColisDto createDemandeEnlevement(ColisRequestDto dto) {
-        dto.setModeDepot(ModeDepot.ENLEVEMENT_DOMICILE);
-        return create(dto);
+    public ColisDto confirmerPeseeAjusterPrix(UUID colisId, Double poidsReel, TranchePoids trancheReelle) {
+        Colis colis = getColis(colisId);
+        verifierTransition(colis.getStatut(), StatutColis.EN_ATTENTE_DEPOT, "en attente de dépôt");
+
+        colis.setPoidsReel(poidsReel);
+
+        TranchePoids trancheFinale = trancheReelle != null ? trancheReelle : colis.getTranchePoids();
+        colis.setTranchePoids(trancheFinale);
+
+        boolean collecteDomicile = colis.getFraisCollecte() != null && colis.getFraisCollecte() > 0;
+        EstimationPrixDto estimation = tarifExpeditionService.estimerPrix(
+                colis.getAgenceDepart().getVille().getId(),
+                colis.getAgenceArrivee().getVille().getId(),
+                trancheFinale,
+                colis.getModeRemise(),
+                collecteDomicile);
+
+        colis.setPrixFinal(estimation.getTotalEstime());
+        colis.setStatut(StatutColis.DEPOSE_EN_AGENCE);
+        colis.setStatutPaiement(StatutPaiementColis.PAYE);
+
+        User agent = SecurityUtils.getConnectedUser(userRepository);
+        Colis saved = colisRepository.save(colis);
+        addHistorique(saved, StatutColis.EN_ATTENTE_DEPOT, StatutColis.DEPOSE_EN_AGENCE, agent,
+                "Pesée confirmée (" + poidsReel + " kg) et prix ajusté");
+
+        return colisMapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public ColisDto chargerColisInTrajet(UUID colisId, UUID trajetId) {
+        Colis colis = getColis(colisId);
+        verifierTransition(colis.getStatut(), StatutColis.DEPOSE_EN_AGENCE, "déposé en agence");
+
+        TrajetEntity trajet = trajetRepository.findById(trajetId)
+                .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable"));
+
+        colis.setTrajet(trajet);
+        colis.setStatut(StatutColis.EN_TRANSIT);
+
+        User agent = SecurityUtils.getConnectedUser(userRepository);
+        Colis saved = colisRepository.save(colis);
+        addHistorique(saved, StatutColis.DEPOSE_EN_AGENCE, StatutColis.EN_TRANSIT, agent,
+                "Chargement dans le trajet");
+
+        return colisMapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public ColisDto receptionnerColis(UUID colisId) {
+        Colis colis = getColis(colisId);
+        verifierTransition(colis.getStatut(), StatutColis.EN_TRANSIT, "en transit");
+
+        colis.setStatut(StatutColis.ARRIVE_EN_AGENCE);
+
+        User agent = SecurityUtils.getConnectedUser(userRepository);
+        Colis saved = colisRepository.save(colis);
+        addHistorique(saved, StatutColis.EN_TRANSIT, StatutColis.ARRIVE_EN_AGENCE, agent,
+                "Réception à l'agence d'arrivée");
+
+        notifierParTelephone(saved.getDestinataireTelephone(), "Colis arrivé",
+                "Votre colis " + saved.getNumeroSuivi()
+                        + " est arrivé à l'agence. Venez le récupérer ou attendez la livraison.");
+
+        return colisMapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public ColisDto demarrerLivraison(UUID colisId, UUID livreurId) {
+        Colis colis = getColis(colisId);
+        verifierTransition(colis.getStatut(), StatutColis.ARRIVE_EN_AGENCE, "arrivé à l'agence");
+
+        User livreur = userRepository.findByPublicId(livreurId)
+                .orElseThrow(() -> new ResourceNotFoundException("Livreur introuvable"));
+
+        colis.setLivreur(livreur);
+        colis.setStatut(StatutColis.EN_COURS_LIVRAISON);
+
+        Colis saved = colisRepository.save(colis);
+        addHistorique(saved, StatutColis.ARRIVE_EN_AGENCE, StatutColis.EN_COURS_LIVRAISON, livreur,
+                "Départ en livraison");
+
+        notifierParTelephone(saved.getDestinataireTelephone(), "Colis en livraison",
+                "Votre colis " + saved.getNumeroSuivi() + " est en cours de livraison vers votre adresse.");
+
+        return colisMapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public ColisDto confirmerLivraison(UUID colisId) {
+        Colis colis = getColis(colisId);
+
+        if (colis.getStatut() != StatutColis.EN_COURS_LIVRAISON
+                && colis.getStatut() != StatutColis.ARRIVE_EN_AGENCE) {
+            throw new ColisTransitionInvalideException(
+                    "Le colis doit être en cours de livraison ou arrivé en agence pour être marqué livré");
+        }
+
+        StatutColis ancien = colis.getStatut();
+        colis.setStatut(StatutColis.LIVRE);
+        colis.setDateLivraison(LocalDateTime.now());
+
+        User agent = SecurityUtils.getConnectedUser(userRepository);
+        Colis saved = colisRepository.save(colis);
+        addHistorique(saved, ancien, StatutColis.LIVRE, agent, "Livraison confirmée");
+
+        String message = "Le colis " + saved.getNumeroSuivi() + " a été livré avec succès.";
+        notifierParTelephone(saved.getExpediteurTelephone(), "Colis livré", message);
+        notifierParTelephone(saved.getDestinataireTelephone(), "Colis livré", message);
+
+        return colisMapper.toDto(saved);
+    }
+
+    @Override
+    public ColisStatutDto getStatutColis(String numeroSuivi) {
+        Colis colis = colisRepository.findByNumeroSuivi(numeroSuivi)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Aucun colis trouvé avec le numéro de suivi : " + numeroSuivi));
+        return colisMapper.toStatutDto(colis);
+    }
+
+    @Override
+    public List<ColisDto> listerColisParAgence(UUID agenceId) {
+        UUID cible = agenceId != null ? agenceId : SecurityUtils.getConnectedUserAgenceId(userRepository);
+
+        if (cible == null) {
+            return colisMapper.toDtoList(colisRepository.findAll());
+        }
+
+        List<Colis> resultats = new ArrayList<>(colisRepository.findByAgenceDepartId(cible));
+        for (Colis colis : colisRepository.findByAgenceArriveeId(cible)) {
+            if (resultats.stream().noneMatch(c -> c.getId().equals(colis.getId()))) {
+                resultats.add(colis);
+            }
+        }
+
+        return colisMapper.toDtoList(resultats);
+    }
+
+    @Override
+    public List<ColisDto> listerColisParStatut(StatutColis statut) {
+        return colisMapper.toDtoList(colisRepository.findByStatut(statut));
+    }
+
+    @Override
+    public List<ColisDto> listerMesColis() {
+        User connecte = SecurityUtils.getConnectedUser(userRepository);
+        return colisMapper.toDtoList(
+                colisRepository.findByExpediteurTelephoneOrderByDateCreationColisDesc(connecte.getTelephone()));
+    }
+
+    @Override
+    public List<ColisDto> listerMesLivraisons() {
+        User connecte = SecurityUtils.getConnectedUser(userRepository);
+        return colisMapper.toDtoList(
+                colisRepository.findByLivreur_PublicIdOrderByDateCreationColisDesc(connecte.getPublicId()));
     }
 
     @Override
     public ColisDto getById(UUID id) {
-        Colis colis = colisRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Colis non trouvé avec l'ID : " + id));
-        return colisMapper.toDto(colis);
-    }
-
-    @Override
-    public ColisDto getByNumeroSuivi(String numeroSuivi) {
-        List<Colis> colisList = colisRepository.findByNumeroSuivi(numeroSuivi);
-        if (colisList.isEmpty()) {
-            throw new RuntimeException("Colis non trouvé avec le numéro de suivi : " + numeroSuivi);
-        }
-        return colisMapper.toDto(colisList.get(0));
-    }
-
-    @Override
-    public List<ColisDto> listColis() {
-        return colisMapper.toDtoList(colisRepository.findAll());
-    }
-
-    @Override
-    public List<ColisDto> filterColis(StatutColis statut, UUID livreurId, UUID expediteurId, String search) {
-        return colisMapper.toDtoList(colisRepository.findByFilters(statut, livreurId, expediteurId, search));
-    }
-
-    @Override
-    public List<ColisDto> findNearby(Double latitude, Double longitude, Double distanceKm) {
-        return colisMapper.toDtoList(colisRepository.findNearby(latitude, longitude, distanceKm));
-    }
-
-    @Override
-    @Transactional
-    public ColisDto updatePartial(UUID id, ColisRequestDto dto) {
-        Colis colis = colisRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Colis non trouvé avec l'ID : " + id));
-
-        if (dto.getNomDestinataire() != null) {
-            colis.setNomDestinataire(dto.getNomDestinataire());
-        }
-        if (dto.getAdresseDestinataire() != null) {
-            colis.setAdresseDestinataire(dto.getAdresseDestinataire());
-        }
-        if (dto.getTelephoneDestinataire() != null) {
-            colis.setTelephoneDestinataire(dto.getTelephoneDestinataire());
-        }
-        if (dto.getPoids() != null) {
-            colis.setPoids(dto.getPoids());
-        }
-        if (dto.getLongueur() != null) {
-            colis.setLongueur(dto.getLongueur());
-        }
-        if (dto.getLargeur() != null) {
-            colis.setLargeur(dto.getLargeur());
-        }
-        if (dto.getHauteur() != null) {
-            colis.setHauteur(dto.getHauteur());
-        }
-        if (dto.getRemarques() != null) {
-            colis.setRemarques(dto.getRemarques());
-        }
-        if (dto.getLatitudeDestinataire() != null) {
-            colis.setLatitudeDestinataire(dto.getLatitudeDestinataire());
-        }
-        if (dto.getLongitudeDestinataire() != null) {
-            colis.setLongitudeDestinataire(dto.getLongitudeDestinataire());
-        }
-        if (dto.getLatitudeCollecte() != null) {
-            colis.setLatitudeCollecte(dto.getLatitudeCollecte());
-        }
-        if (dto.getLongitudeCollecte() != null) {
-            colis.setLongitudeCollecte(dto.getLongitudeCollecte());
-        }
-
-        return colisMapper.toDto(colisRepository.save(colis));
-    }
-
-    @Override
-    @Transactional
-    public ColisDto assignerLivreur(UUID colisId, UUID livreurId) {
-        Colis colis = colisRepository.findById(colisId)
-                .orElseThrow(() -> new RuntimeException("Colis non trouvé avec l'ID : " + colisId));
-
-        User livreur = userRepository.findByPublicId(livreurId)
-                .orElseThrow(() -> new RuntimeException("Livreur non trouvé avec l'ID : " + livreurId));
-
-        StatutColis ancienStatut = colis.getStatut();
-        colis.setLivreur(livreur);
-        colis.setStatut(StatutColis.PRIS_EN_CHARGE);
-
-        Colis savedColis = colisRepository.save(colis);
-        addHistorique(savedColis, ancienStatut, StatutColis.PRIS_EN_CHARGE, livreur, "Assignation du livreur");
-
-        return colisMapper.toDto(savedColis);
-    }
-
-    @Override
-    @Transactional
-    public ColisDto collecter(UUID colisId, String commentaire) {
-        Colis colis = colisRepository.findById(colisId)
-                .orElseThrow(() -> new RuntimeException("Colis non trouvé avec l'ID : " + colisId));
-
-        if (colis.getLivreur() == null) {
-            throw new RuntimeException("Le colis doit être assigné à un livreur avant la collecte");
-        }
-
-        StatutColis ancienStatut = colis.getStatut();
-        validateStatutTransition(ancienStatut, StatutColis.COLLECTE_EFFECTUEE);
-
-        colis.setStatut(StatutColis.COLLECTE_EFFECTUEE);
-        Colis savedColis = colisRepository.save(colis);
-        addHistorique(savedColis, ancienStatut, StatutColis.COLLECTE_EFFECTUEE, colis.getLivreur(), commentaire);
-
-        return colisMapper.toDto(savedColis);
-    }
-
-    @Override
-    @Transactional
-    public ColisDto livrer(UUID colisId, String commentaire) {
-        Colis colis = colisRepository.findById(colisId)
-                .orElseThrow(() -> new RuntimeException("Colis non trouvé avec l'ID : " + colisId));
-
-        if (colis.getLivreur() == null) {
-            throw new RuntimeException("Le colis doit être assigné à un livreur avant la livraison");
-        }
-
-        StatutColis ancienStatut = colis.getStatut();
-        validateStatutTransition(ancienStatut, StatutColis.LIVRE);
-
-        colis.setStatut(StatutColis.LIVRE);
-        colis.setDateLivraison(LocalDateTime.now());
-        Colis savedColis = colisRepository.save(colis);
-        addHistorique(savedColis, ancienStatut, StatutColis.LIVRE, colis.getLivreur(), commentaire);
-
-        return colisMapper.toDto(savedColis);
+        return colisMapper.toDto(getColis(id));
     }
 
     @Override
     public List<HistoriqueColisDto> getHistorique(UUID colisId) {
-        Colis colis = colisRepository.findById(colisId)
-                .orElseThrow(() -> new RuntimeException("Colis non trouvé avec l'ID : " + colisId));
-
-        return colis.getHistorique().stream()
-                .map(historiqueColisMapper::toDto)
-                .toList();
+        Colis colis = getColis(colisId);
+        return colis.getHistorique().stream().map(historiqueColisMapper::toDto).toList();
     }
 
     @Override
     @Transactional
     public void annulerColis(UUID colisId) {
-        Colis colis = colisRepository.findById(colisId)
-                .orElseThrow(() -> new RuntimeException("Colis non trouvé avec l'ID : " + colisId));
+        Colis colis = getColis(colisId);
 
         if (colis.getStatut() == StatutColis.LIVRE) {
-            throw new RuntimeException("Impossible d'annuler un colis déjà livré");
+            throw new ColisTransitionInvalideException("Impossible d'annuler un colis déjà livré");
         }
 
-        StatutColis ancienStatut = colis.getStatut();
+        StatutColis ancien = colis.getStatut();
         colis.setStatut(StatutColis.ANNULE);
+
+        User agent = SecurityUtils.getConnectedUser(userRepository);
         colisRepository.save(colis);
-        addHistorique(colis, ancienStatut, StatutColis.ANNULE, colis.getExpediteur(), "Annulation du colis");
+        addHistorique(colis, ancien, StatutColis.ANNULE, agent, "Annulation du colis");
     }
 
-    @Override
-    public String generateNumeroSuivi() {
-        int year = Year.now().getValue();
-        long count = colisRepository.count() + 1;
-        return String.format("COL-%d-%04d", year, count);
+    private String generateNumeroSuivi() {
+        String numero;
+        do {
+            int suffixe = ThreadLocalRandom.current().nextInt(0, 1_000_000);
+            numero = String.format("TRS-%06d", suffixe);
+        } while (colisRepository.findByNumeroSuivi(numero).isPresent());
+        return numero;
     }
 
-    private void addHistorique(Colis colis, StatutColis ancienStatut, StatutColis nouveauStatut, User utilisateur, String commentaire) {
+    private void addHistorique(Colis colis, StatutColis ancien, StatutColis nouveau, User utilisateur, String commentaire) {
         HistoriqueColis historique = new HistoriqueColis();
         historique.setColis(colis);
-        historique.setAncienStatut(ancienStatut);
-        historique.setNouveauStatut(nouveauStatut);
+        historique.setAncienStatut(ancien);
+        historique.setNouveauStatut(nouveau);
         historique.setDateChangement(LocalDateTime.now());
         historique.setUtilisateur(utilisateur);
         historique.setCommentaire(commentaire);
         historiqueColisRepository.save(historique);
     }
 
-    private void validateStatutTransition(StatutColis ancien, StatutColis nouveau) {
-        // Validation des transitions de statut
-        if (nouveau == StatutColis.EN_ATTENTE_COLLECTE && ancien != null) {
-            throw new RuntimeException("Impossible de revenir au statut EN_ATTENTE_COLLECTE");
+    private void verifierTransition(StatutColis actuel, StatutColis attendu, String libelleAttendu) {
+        if (actuel != attendu) {
+            throw new ColisTransitionInvalideException(
+                    "Le colis doit être " + libelleAttendu + " pour effectuer cette action (statut actuel : " + actuel + ")");
         }
-        if (nouveau == StatutColis.PRIS_EN_CHARGE && ancien != StatutColis.EN_ATTENTE_COLLECTE) {
-            throw new RuntimeException("Le colis doit être en attente de collecte pour être pris en charge");
+    }
+
+    private void notifierParTelephone(String telephone, String titre, String message) {
+        if (telephone == null || telephone.isBlank()) {
+            return;
         }
-        if (nouveau == StatutColis.COLLECTE_EFFECTUEE && ancien != StatutColis.PRIS_EN_CHARGE) {
-            throw new RuntimeException("Le colis doit être pris en charge pour être collecté");
-        }
-        if (nouveau == StatutColis.LIVRE && ancien != StatutColis.COLLECTE_EFFECTUEE && ancien != StatutColis.EN_COURS) {
-            throw new RuntimeException("Le colis doit être collecté ou en cours pour être livré");
-        }
+        userRepository.findByTelephone(telephone)
+                .ifPresent(user -> notificationService.envoyerNotification(user.getId(), titre, message));
+    }
+
+    private Colis getColis(UUID id) {
+        return colisRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Colis introuvable"));
+    }
+
+    private AgenceEntity getAgence(UUID id) {
+        return agenceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Agence introuvable"));
     }
 }

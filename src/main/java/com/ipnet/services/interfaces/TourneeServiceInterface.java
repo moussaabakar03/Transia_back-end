@@ -14,6 +14,6 @@ public interface TourneeServiceInterface {
     List<TourneeDto> filterTournees(LocalDate date, UUID livreurId, String zone);
     TourneeDto updatePartial(UUID id, TourneeRequestDto dto);
     void delete(UUID id);
-    TourneeDto addColisToTournee(UUID tourneeId, UUID colisId);
-    TourneeDto removeColisFromTournee(UUID tourneeId, UUID colisId);
+    TourneeDto addDemandeToTournee(UUID tourneeId, UUID demandeId);
+    TourneeDto removeDemandeFromTournee(UUID tourneeId, UUID demandeId);
 }
