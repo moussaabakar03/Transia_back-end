@@ -7,11 +7,17 @@ import com.ipnet.dto.ChauffeurProblemeDto;
 
 public interface ChauffeurProblemeServiceInterface {
 
-    ChauffeurProblemeDto save(ChauffeurProblemeDto dto);
+    ChauffeurProblemeDto save(
+            ChauffeurProblemeDto dto
+    );
 
     List<ChauffeurProblemeDto> getAll();
 
-    List<ChauffeurProblemeDto> getByTrajet(UUID trajetId);
+    List<ChauffeurProblemeDto> getByTrajet(
+            UUID trajetId
+    );
 
-    List<ChauffeurProblemeDto> getByChauffeur(Long chauffeurId);
+    List<ChauffeurProblemeDto> getByChauffeur(
+            Long chauffeurId
+    );
 }
