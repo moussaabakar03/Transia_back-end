@@ -15,7 +15,8 @@ public interface ColisServiceInterface {
     ColisDto confirmerPeseeAjusterPrix(UUID colisId, Double poidsReel, TranchePoids trancheReelle);
     ColisDto chargerColisInTrajet(UUID colisId, UUID trajetId);
     ColisDto receptionnerColis(UUID colisId);
-    ColisDto demarrerLivraison(UUID colisId, UUID livreurId);
+    ColisDto affecterLivreur(UUID colisId, UUID livreurId);
+    ColisDto demarrerLivraison(UUID colisId);
     ColisDto confirmerLivraison(UUID colisId);
     ColisStatutDto getStatutColis(String numeroSuivi);
     List<ColisDto> listerColisParAgence(UUID agenceId);

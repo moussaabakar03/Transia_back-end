@@ -19,6 +19,7 @@ import com.ipnet.entity.Colis;
 import com.ipnet.entity.HistoriqueColis;
 import com.ipnet.entity.TrajetEntity;
 import com.ipnet.enums.StatutColis;
+import com.ipnet.enums.ModeRemise;
 import com.ipnet.enums.StatutPaiementColis;
 import com.ipnet.enums.TranchePoids;
 import com.ipnet.exception.ColisTransitionInvalideException;
@@ -29,6 +30,9 @@ import com.ipnet.repository.ColisRepository;
 import com.ipnet.repository.HistoriqueColisRepository;
 import com.ipnet.repository.TrajetRepository;
 import com.ipnet.security.SecurityUtils;
+import com.ipnet.security.enums.StatutCompte;
+import com.ipnet.security.enums.StatutOperationnel;
+import com.ipnet.security.enums.UserRole;
 import com.ipnet.security.exception.ResourceNotFoundException;
 import com.ipnet.security.model.User;
 import com.ipnet.security.repository.UserRepository;
@@ -190,22 +194,132 @@ public class ColisServiceImpl implements ColisServiceInterface {
 
     @Override
     @Transactional
-    public ColisDto demarrerLivraison(UUID colisId, UUID livreurId) {
-        Colis colis = getColis(colisId);
-        verifierTransition(colis.getStatut(), StatutColis.ARRIVE_EN_AGENCE, "arrivé à l'agence");
+    public ColisDto affecterLivreur(UUID colisId, UUID livreurId) {
+        if (livreurId == null) {
+            throw new IllegalArgumentException(
+                    "L'identifiant du livreur est obligatoire"
+            );
+        }
 
-        User livreur = userRepository.findByPublicId(livreurId)
-                .orElseThrow(() -> new ResourceNotFoundException("Livreur introuvable"));
+        Colis colis = getColis(colisId);
+        verifierColisAffectable(colis);
+
+        AgenceEntity agenceArrivee = colis.getAgenceArrivee();
+        UUID agenceArriveeId = agenceArrivee.getId();
+
+        // Le SUPER_ADMIN peut agir sur toutes les agences.
+        // L'ADMIN_AGENCE et l'AGENT_ACCUEIL ne peuvent agir que
+        // sur les colis arrivés dans leur propre agence.
+        SecurityUtils.checkAgenceAccess(
+                userRepository,
+                agenceArriveeId
+        );
+
+        User livreur = getLivreur(livreurId);
+        verifierLivreurEligible(
+                livreur,
+                agenceArriveeId
+        );
+
+        // Rend l'opération idempotente : répéter la même requête
+        // ne crée pas un nouvel historique inutile.
+        if (estDejaAffecteAuLivreur(colis, livreurId)) {
+            return colisMapper.toDto(colis);
+        }
+
+        StatutColis ancienStatut = colis.getStatut();
+        User ancienLivreur = colis.getLivreur();
 
         colis.setLivreur(livreur);
-        colis.setStatut(StatutColis.EN_COURS_LIVRAISON);
+        colis.setStatut(StatutColis.AFFECTE_AU_LIVREUR);
 
+        User agent = SecurityUtils.getConnectedUser(userRepository);
         Colis saved = colisRepository.save(colis);
-        addHistorique(saved, StatutColis.ARRIVE_EN_AGENCE, StatutColis.EN_COURS_LIVRAISON, livreur,
-                "Départ en livraison");
 
-        notifierParTelephone(saved.getDestinataireTelephone(), "Colis en livraison",
-                "Votre colis " + saved.getNumeroSuivi() + " est en cours de livraison vers votre adresse.");
+        String commentaire = construireCommentaireAffectation(
+                ancienLivreur,
+                livreur
+        );
+
+        addHistorique(
+                saved,
+                ancienStatut,
+                StatutColis.AFFECTE_AU_LIVREUR,
+                agent,
+                commentaire
+        );
+
+        if (ancienLivreur != null
+                && !ancienLivreur.getPublicId().equals(livreurId)) {
+            notificationService.envoyerNotification(
+                    ancienLivreur.getId(),
+                    "Livraison réaffectée",
+                    "Le colis " + saved.getNumeroSuivi()
+                            + " a été réaffecté à un autre livreur."
+            );
+        }
+
+        notificationService.envoyerNotification(
+                livreur.getId(),
+                "Nouvelle livraison affectée",
+                "Le colis " + saved.getNumeroSuivi()
+                        + " vous a été affecté pour une livraison à domicile."
+        );
+
+        return colisMapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public ColisDto demarrerLivraison(UUID colisId) {
+        Colis colis = getColis(colisId);
+        verifierTransition(
+                colis.getStatut(),
+                StatutColis.AFFECTE_AU_LIVREUR,
+                "affecté à un livreur"
+        );
+
+        User livreurConnecte = SecurityUtils.getConnectedUser(userRepository);
+
+        if (colis.getLivreur() == null) {
+            throw new IllegalArgumentException(
+                    "Aucun livreur n'est affecté à ce colis"
+            );
+        }
+
+        if (!colis.getLivreur().getPublicId().equals(livreurConnecte.getPublicId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Ce colis est affecté à un autre livreur"
+            );
+        }
+
+        if (livreurConnecte.getStatutOperationnel() != StatutOperationnel.DISPONIBLE
+                && livreurConnecte.getStatutOperationnel() != StatutOperationnel.EN_COURSE) {
+            throw new IllegalArgumentException(
+                    "Votre statut opérationnel ne permet pas de démarrer cette livraison"
+            );
+        }
+
+        colis.setStatut(StatutColis.EN_COURS_LIVRAISON);
+        livreurConnecte.setStatutOperationnel(StatutOperationnel.EN_COURSE);
+
+        userRepository.save(livreurConnecte);
+        Colis saved = colisRepository.save(colis);
+
+        addHistorique(
+                saved,
+                StatutColis.AFFECTE_AU_LIVREUR,
+                StatutColis.EN_COURS_LIVRAISON,
+                livreurConnecte,
+                "Départ en livraison"
+        );
+
+        notifierParTelephone(
+                saved.getDestinataireTelephone(),
+                "Colis en livraison",
+                "Votre colis " + saved.getNumeroSuivi()
+                        + " est en cours de livraison vers votre adresse."
+        );
 
         return colisMapper.toDto(saved);
     }
@@ -214,24 +328,58 @@ public class ColisServiceImpl implements ColisServiceInterface {
     @Transactional
     public ColisDto confirmerLivraison(UUID colisId) {
         Colis colis = getColis(colisId);
+        verifierTransition(
+                colis.getStatut(),
+                StatutColis.EN_COURS_LIVRAISON,
+                "en cours de livraison"
+        );
 
-        if (colis.getStatut() != StatutColis.EN_COURS_LIVRAISON
-                && colis.getStatut() != StatutColis.ARRIVE_EN_AGENCE) {
-            throw new ColisTransitionInvalideException(
-                    "Le colis doit être en cours de livraison ou arrivé en agence pour être marqué livré");
+        User livreurConnecte = SecurityUtils.getConnectedUser(userRepository);
+
+        if (colis.getLivreur() == null
+                || !colis.getLivreur().getPublicId().equals(livreurConnecte.getPublicId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Seul le livreur affecté à ce colis peut confirmer sa livraison"
+            );
         }
 
-        StatutColis ancien = colis.getStatut();
         colis.setStatut(StatutColis.LIVRE);
         colis.setDateLivraison(LocalDateTime.now());
 
-        User agent = SecurityUtils.getConnectedUser(userRepository);
         Colis saved = colisRepository.save(colis);
-        addHistorique(saved, ancien, StatutColis.LIVRE, agent, "Livraison confirmée");
+        addHistorique(
+                saved,
+                StatutColis.EN_COURS_LIVRAISON,
+                StatutColis.LIVRE,
+                livreurConnecte,
+                "Livraison confirmée"
+        );
 
-        String message = "Le colis " + saved.getNumeroSuivi() + " a été livré avec succès.";
-        notifierParTelephone(saved.getExpediteurTelephone(), "Colis livré", message);
-        notifierParTelephone(saved.getDestinataireTelephone(), "Colis livré", message);
+        boolean autreLivraisonEnCours = colisRepository
+                .existsByLivreur_PublicIdAndStatut(
+                        livreurConnecte.getPublicId(),
+                        StatutColis.EN_COURS_LIVRAISON
+                );
+
+        if (!autreLivraisonEnCours) {
+            livreurConnecte.setStatutOperationnel(
+                    StatutOperationnel.DISPONIBLE
+            );
+            userRepository.save(livreurConnecte);
+        }
+
+        String message = "Le colis " + saved.getNumeroSuivi()
+                + " a été livré avec succès.";
+        notifierParTelephone(
+                saved.getExpediteurTelephone(),
+                "Colis livré",
+                message
+        );
+        notifierParTelephone(
+                saved.getDestinataireTelephone(),
+                "Colis livré",
+                message
+        );
 
         return colisMapper.toDto(saved);
     }
@@ -309,6 +457,125 @@ public class ColisServiceImpl implements ColisServiceInterface {
         addHistorique(colis, ancien, StatutColis.ANNULE, agent, "Annulation du colis");
     }
 
+    private void verifierColisAffectable(Colis colis) {
+        if (colis.getStatut() != StatutColis.ARRIVE_EN_AGENCE
+                && colis.getStatut() != StatutColis.AFFECTE_AU_LIVREUR) {
+            throw new ColisTransitionInvalideException(
+                    "Le colis doit être arrivé à l'agence de destination "
+                            + "pour être affecté à un livreur "
+                            + "(statut actuel : " + colis.getStatut() + ")"
+            );
+        }
+
+        if (colis.getModeRemise() != ModeRemise.LIVRAISON_DOMICILE) {
+            throw new IllegalArgumentException(
+                    "Ce colis est prévu pour un retrait en agence "
+                            + "et ne peut pas être affecté à un livreur"
+            );
+        }
+
+        if (colis.getStatutPaiement() != StatutPaiementColis.PAYE) {
+            throw new IllegalArgumentException(
+                    "Le paiement du colis doit être confirmé "
+                            + "avant son affectation à un livreur"
+            );
+        }
+
+        if (colis.getAgenceArrivee() == null
+                || colis.getAgenceArrivee().getId() == null) {
+            throw new IllegalArgumentException(
+                    "Le colis ne possède aucune agence d'arrivée valide"
+            );
+        }
+    }
+
+    private User getLivreur(UUID livreurId) {
+        return userRepository.findByPublicId(livreurId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Livreur introuvable avec l'identifiant : "
+                                + livreurId
+                ));
+    }
+
+    private void verifierLivreurEligible(
+            User livreur,
+            UUID agenceArriveeId
+    ) {
+        boolean possedeRoleLivreur = livreur.getRoles() != null
+                && livreur.getRoles()
+                        .stream()
+                        .anyMatch(role ->
+                                role.getName() == UserRole.LIVREUR
+                        );
+
+        if (!possedeRoleLivreur) {
+            throw new IllegalArgumentException(
+                    "L'utilisateur sélectionné ne possède pas le rôle LIVREUR"
+            );
+        }
+
+        if (livreur.getStatutCompte() != StatutCompte.ACTIF) {
+            throw new IllegalArgumentException(
+                    "Le compte du livreur sélectionné n'est pas actif"
+            );
+        }
+
+        AgenceEntity agenceLivreur = livreur.getAgence();
+
+        if (agenceLivreur == null || agenceLivreur.getId() == null) {
+            throw new IllegalArgumentException(
+                    "Le livreur sélectionné n'est rattaché à aucune agence "
+                            + "dans la base de données"
+            );
+        }
+
+        UUID agenceLivreurId = agenceLivreur.getId();
+
+        if (!agenceArriveeId.equals(agenceLivreurId)) {
+            throw new IllegalArgumentException(
+                    "Le livreur sélectionné doit appartenir à l'agence "
+                            + "d'arrivée du colis. "
+                            + "Agence du colis : " + agenceArriveeId
+                            + " ; agence du livreur : " + agenceLivreurId
+            );
+        }
+
+        if (livreur.getStatutOperationnel()
+                != StatutOperationnel.DISPONIBLE) {
+            throw new IllegalArgumentException(
+                    "Le livreur sélectionné n'est pas disponible "
+                            + "(statut actuel : "
+                            + livreur.getStatutOperationnel() + ")"
+            );
+        }
+    }
+
+    private boolean estDejaAffecteAuLivreur(
+            Colis colis,
+            UUID livreurId
+    ) {
+        return colis.getStatut() == StatutColis.AFFECTE_AU_LIVREUR
+                && colis.getLivreur() != null
+                && livreurId.equals(
+                        colis.getLivreur().getPublicId()
+                );
+    }
+
+    private String construireCommentaireAffectation(
+            User ancienLivreur,
+            User nouveauLivreur
+    ) {
+        if (ancienLivreur == null) {
+            return "Colis affecté au livreur "
+                    + nouveauLivreur.getNom();
+        }
+
+        return "Colis réaffecté du livreur "
+                + ancienLivreur.getNom()
+                + " au livreur "
+                + nouveauLivreur.getNom();
+    }
+
     private String generateNumeroSuivi() {
         String numero;
         do {
@@ -318,7 +585,13 @@ public class ColisServiceImpl implements ColisServiceInterface {
         return numero;
     }
 
-    private void addHistorique(Colis colis, StatutColis ancien, StatutColis nouveau, User utilisateur, String commentaire) {
+    private void addHistorique(
+            Colis colis,
+            StatutColis ancien,
+            StatutColis nouveau,
+            User utilisateur,
+            String commentaire
+    ) {
         HistoriqueColis historique = new HistoriqueColis();
         historique.setColis(colis);
         historique.setAncienStatut(ancien);
@@ -329,19 +602,36 @@ public class ColisServiceImpl implements ColisServiceInterface {
         historiqueColisRepository.save(historique);
     }
 
-    private void verifierTransition(StatutColis actuel, StatutColis attendu, String libelleAttendu) {
+    private void verifierTransition(
+            StatutColis actuel,
+            StatutColis attendu,
+            String libelleAttendu
+    ) {
         if (actuel != attendu) {
             throw new ColisTransitionInvalideException(
-                    "Le colis doit être " + libelleAttendu + " pour effectuer cette action (statut actuel : " + actuel + ")");
+                    "Le colis doit être " + libelleAttendu
+                            + " pour effectuer cette action "
+                            + "(statut actuel : " + actuel + ")"
+            );
         }
     }
 
-    private void notifierParTelephone(String telephone, String titre, String message) {
+    private void notifierParTelephone(
+            String telephone,
+            String titre,
+            String message
+    ) {
         if (telephone == null || telephone.isBlank()) {
             return;
         }
         userRepository.findByTelephone(telephone)
-                .ifPresent(user -> notificationService.envoyerNotification(user.getId(), titre, message));
+                .ifPresent(user ->
+                        notificationService.envoyerNotification(
+                                user.getId(),
+                                titre,
+                                message
+                        )
+                );
     }
 
     private Colis getColis(UUID id) {

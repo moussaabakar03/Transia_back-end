@@ -34,4 +34,6 @@ public interface ColisRepository extends JpaRepository<Colis, UUID> {
 
     // "mes livraisons" côté livreur : livreur est bien un FK User ici.
     List<Colis> findByLivreur_PublicIdOrderByDateCreationColisDesc(UUID livreurPublicId);
+
+    boolean existsByLivreur_PublicIdAndStatut(UUID livreurPublicId, StatutColis statut);
 }
