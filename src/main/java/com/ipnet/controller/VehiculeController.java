@@ -58,14 +58,7 @@ public class VehiculeController {
     @GetMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN_AGENCE','AGENT_ACCUEIL')")
     public List<VehiculeDto> listeVehicule() {
-        List<VehiculeDto> tous = vehiculeService.listeVehicule();
-        if (SecurityUtils.hasRole("SUPER_ADMIN")) {
-            return tous;
-        }
-        UUID agenceId = SecurityUtils.getConnectedUserAgenceId(userRepository);
-        return tous.stream()
-                .filter(v -> agenceId != null && agenceId.equals(v.getAgenceId()))
-                .toList();
+        return vehiculeService.listeVehicule();
     }
 
     // Volontairement non filtré par agence : sert à trouver un véhicule disponible dans une ville,

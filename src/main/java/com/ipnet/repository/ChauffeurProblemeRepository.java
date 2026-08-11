@@ -9,9 +9,14 @@ import org.springframework.stereotype.Repository;
 import com.ipnet.entity.ChauffeurProblemeEntity;
 
 @Repository
-public interface ChauffeurProblemeRepository extends JpaRepository<ChauffeurProblemeEntity, UUID> {
+public interface ChauffeurProblemeRepository
+        extends JpaRepository<ChauffeurProblemeEntity, UUID> {
 
-    List<ChauffeurProblemeEntity> findByTrajet_Id(UUID trajetId);
+    List<ChauffeurProblemeEntity> findByTrajet_Id(
+            UUID trajetId
+    );
 
-    List<ChauffeurProblemeEntity> findByChauffeur_Id(Long chauffeurId);
+    List<ChauffeurProblemeEntity> findByChauffeur_Id(
+            Long chauffeurId
+    );
 }

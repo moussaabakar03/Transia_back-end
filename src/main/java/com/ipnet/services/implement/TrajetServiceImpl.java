@@ -50,15 +50,39 @@ public class TrajetServiceImpl implements TrajetService {
 
     @Override
     public TrajetResponseDto creerTrajet(TrajetRequestDto request) {
-        VilleEntity depart = villeRepository.findById(request.getVilleDepartId())
-                .orElseThrow(() -> new RuntimeException("Départ non trouvé"));
-        VilleEntity arrivee = villeRepository.findById(request.getVilleArriveeId())
-                .orElseThrow(() -> new RuntimeException("Arrivée non trouvée"));
+        if (request.getDateDepart() != null && request.getDateDepart().isBefore(java.time.LocalDate.now())) {
+            throw new IllegalArgumentException("La date de départ ne peut pas être antérieure à la date d'aujourd'hui.");
+        }
+
+        AgenceEntity agenceDepart = resolveAgence(request.getAgenceDepartId() != null ? request.getAgenceDepartId() : request.getAgenceId());
+        AgenceEntity agenceArrivee = resolveAgence(request.getAgenceArriveeId());
+
+        VilleEntity depart = null;
+        if (request.getVilleDepartId() != null) {
+            depart = villeRepository.findById(request.getVilleDepartId()).orElse(null);
+        }
+        if (depart == null && agenceDepart != null && agenceDepart.getVille() != null) {
+            depart = agenceDepart.getVille();
+        }
+        if (depart == null) {
+            throw new RuntimeException("Départ non trouvé");
+        }
+
+        VilleEntity arrivee = null;
+        if (request.getVilleArriveeId() != null) {
+            arrivee = villeRepository.findById(request.getVilleArriveeId()).orElse(null);
+        }
+        if (arrivee == null && agenceArrivee != null && agenceArrivee.getVille() != null) {
+            arrivee = agenceArrivee.getVille();
+        }
+        if (arrivee == null) {
+            throw new RuntimeException("Arrivée non trouvée");
+        }
+
         VehiculeEntity vehicule = vehiculeRepository.findById(request.getVehiculeId())
                 .orElseThrow(VehiculeIntrouvableException::new);
 
         User chauffeur = resolveChauffeur(request.getChauffeurId());
-        AgenceEntity agence = resolveAgence(request.getAgenceId());
 
         verifierVehiculeUtilisable(vehicule);
         verifierDisponibilite(vehicule.getId(), chauffeur, request.getDateDepart(), null);
@@ -68,7 +92,8 @@ public class TrajetServiceImpl implements TrajetService {
         entity.setVilleArrivee(arrivee);
         entity.setVehicule(vehicule);
         entity.setChauffeur(chauffeur);
-        entity.setAgence(agence);
+        entity.setAgenceDepart(agenceDepart);
+        entity.setAgenceArrivee(agenceArrivee);
         entity.setDistance(request.getDistance());
         entity.setDureeEstimee(request.getDureeEstimee());
         entity.setTarif(request.getTarif());
@@ -77,6 +102,20 @@ public class TrajetServiceImpl implements TrajetService {
         entity.setStatut(request.getStatut() != null ? request.getStatut() : StatutTrajet.PROGRAMME);
 
         return trajetMapper.toResponse(trajetRepository.save(entity));
+    }
+
+    /**
+     * Marque automatiquement les trajets PROGRAMME dont la date de départ est dépassée comme EXPIRE.
+     */
+    private void actualiserStatutsExpires() {
+        List<TrajetEntity> programmes = trajetRepository.findByStatut(StatutTrajet.PROGRAMME);
+        java.time.LocalDate aujourdhui = java.time.LocalDate.now();
+        for (TrajetEntity t : programmes) {
+            if (t.getDateDepart() != null && t.getDateDepart().isBefore(aujourdhui)) {
+                t.setStatut(StatutTrajet.EXPIRE);
+                trajetRepository.save(t);
+            }
+        }
     }
 
     /**
@@ -95,19 +134,27 @@ public class TrajetServiceImpl implements TrajetService {
      * à cette date. excludeTrajetId permet d'ignorer le trajet lui-même lors d'une modification.
      */
     private void verifierDisponibilite(UUID vehiculeId, User chauffeur, java.time.LocalDate date, UUID excludeTrajetId) {
-        boolean vehiculeOccupe = trajetRepository.findByVehicule_IdAndDateDepart(vehiculeId, date).stream()
+        java.util.Optional<TrajetEntity> conflitVehicule = trajetRepository.findByVehicule_IdAndDateDepart(vehiculeId, date).stream()
                 .filter(t -> excludeTrajetId == null || !t.getId().equals(excludeTrajetId))
-                .anyMatch(t -> STATUTS_OCCUPANTS.contains(t.getStatut()));
-        if (vehiculeOccupe) {
-            throw new VehiculeIndisponibleException();
+                .filter(t -> STATUTS_OCCUPANTS.contains(t.getStatut()))
+                .findFirst();
+        if (conflitVehicule.isPresent()) {
+            TrajetEntity c = conflitVehicule.get();
+            String dept = c.getVilleDepart() != null ? c.getVilleDepart().getNomVille() : "...";
+            String arr = c.getVilleArrivee() != null ? c.getVilleArrivee().getNomVille() : "...";
+            throw new RuntimeException("Le véhicule sélectionné est déjà planifié le " + date + " sur le trajet " + dept + " → " + arr + " (" + c.getHeureDepart() + ")");
         }
 
         if (chauffeur != null) {
-            boolean chauffeurOccupe = trajetRepository.findByChauffeur_IdAndDateDepart(chauffeur.getId(), date).stream()
+            java.util.Optional<TrajetEntity> conflitChauffeur = trajetRepository.findByChauffeur_IdAndDateDepart(chauffeur.getId(), date).stream()
                     .filter(t -> excludeTrajetId == null || !t.getId().equals(excludeTrajetId))
-                    .anyMatch(t -> STATUTS_OCCUPANTS.contains(t.getStatut()));
-            if (chauffeurOccupe) {
-                throw new ChauffeurIndisponibleException();
+                    .filter(t -> STATUTS_OCCUPANTS.contains(t.getStatut()))
+                    .findFirst();
+            if (conflitChauffeur.isPresent()) {
+                TrajetEntity c = conflitChauffeur.get();
+                String dept = c.getVilleDepart() != null ? c.getVilleDepart().getNomVille() : "...";
+                String arr = c.getVilleArrivee() != null ? c.getVilleArrivee().getNomVille() : "...";
+                throw new RuntimeException("Le chauffeur sélectionné est déjà planifié le " + date + " sur le trajet " + dept + " → " + arr + " (" + c.getHeureDepart() + ")");
             }
         }
     }
@@ -126,6 +173,7 @@ public class TrajetServiceImpl implements TrajetService {
 
     @Override
     public List<TrajetResponseDto> listerTousLesTrajets() {
+        actualiserStatutsExpires();
         return trajetRepository.findAll()
                 .stream()
                 .map(trajetMapper::toResponse)
@@ -134,6 +182,7 @@ public class TrajetServiceImpl implements TrajetService {
 
     @Override
     public TrajetResponseDto obtenirTrajet(UUID id) {
+        actualiserStatutsExpires();
         return trajetRepository.findById(id)
                 .map(trajetMapper::toResponse)
                 .orElseThrow(TrajetIntrouvableException::new);
@@ -165,15 +214,35 @@ public class TrajetServiceImpl implements TrajetService {
         TrajetEntity entity = trajetRepository.findById(id)
                 .orElseThrow(TrajetIntrouvableException::new);
 
-        VilleEntity depart = villeRepository.findById(request.getVilleDepartId())
-                .orElseThrow(() -> new RuntimeException("Départ non trouvé"));
-        VilleEntity arrivee = villeRepository.findById(request.getVilleArriveeId())
-                .orElseThrow(() -> new RuntimeException("Arrivée non trouvée"));
+        AgenceEntity agenceDepart = resolveAgence(request.getAgenceDepartId() != null ? request.getAgenceDepartId() : request.getAgenceId());
+        AgenceEntity agenceArrivee = resolveAgence(request.getAgenceArriveeId());
+
+        VilleEntity depart = null;
+        if (request.getVilleDepartId() != null) {
+            depart = villeRepository.findById(request.getVilleDepartId()).orElse(null);
+        }
+        if (depart == null && agenceDepart != null && agenceDepart.getVille() != null) {
+            depart = agenceDepart.getVille();
+        }
+        if (depart == null) {
+            depart = entity.getVilleDepart();
+        }
+
+        VilleEntity arrivee = null;
+        if (request.getVilleArriveeId() != null) {
+            arrivee = villeRepository.findById(request.getVilleArriveeId()).orElse(null);
+        }
+        if (arrivee == null && agenceArrivee != null && agenceArrivee.getVille() != null) {
+            arrivee = agenceArrivee.getVille();
+        }
+        if (arrivee == null) {
+            arrivee = entity.getVilleArrivee();
+        }
+
         VehiculeEntity vehicule = vehiculeRepository.findById(request.getVehiculeId())
                 .orElseThrow(VehiculeIntrouvableException::new);
 
         User chauffeur = resolveChauffeur(request.getChauffeurId());
-        AgenceEntity agence = resolveAgence(request.getAgenceId());
 
         verifierVehiculeUtilisable(vehicule);
         verifierDisponibilite(vehicule.getId(), chauffeur, request.getDateDepart(), id);
@@ -182,13 +251,31 @@ public class TrajetServiceImpl implements TrajetService {
         entity.setVilleArrivee(arrivee);
         entity.setVehicule(vehicule);
         entity.setChauffeur(chauffeur);
-        entity.setAgence(agence);
+        entity.setAgenceDepart(agenceDepart != null ? agenceDepart : entity.getAgenceDepart());
+        if (agenceArrivee != null) {
+            entity.setAgenceArrivee(agenceArrivee);
+        }
         entity.setDistance(request.getDistance());
         entity.setDureeEstimee(request.getDureeEstimee());
         entity.setTarif(request.getTarif());
         entity.setDateDepart(request.getDateDepart());
         entity.setHeureDepart(request.getHeureDepart());
-        entity.setStatut(request.getStatut() != null ? request.getStatut() : StatutTrajet.PROGRAMME);
+
+        java.time.LocalDate aujourdhui = java.time.LocalDate.now();
+        StatutTrajet statutDemande = request.getStatut();
+        
+        // Si le trajet était EXPIRE et qu'on le replanifie aujourd'hui ou dans le futur
+        if (request.getDateDepart() != null && !request.getDateDepart().isBefore(aujourdhui)) {
+            if (entity.getStatut() == StatutTrajet.EXPIRE && (statutDemande == null || statutDemande == StatutTrajet.EXPIRE)) {
+                statutDemande = StatutTrajet.PROGRAMME;
+            }
+        } else if (request.getDateDepart() != null && request.getDateDepart().isBefore(aujourdhui)) {
+            if (statutDemande == StatutTrajet.PROGRAMME || statutDemande == null) {
+                statutDemande = StatutTrajet.EXPIRE;
+            }
+        }
+
+        entity.setStatut(statutDemande != null ? statutDemande : StatutTrajet.PROGRAMME);
 
         return trajetMapper.toResponse(trajetRepository.save(entity));
     }

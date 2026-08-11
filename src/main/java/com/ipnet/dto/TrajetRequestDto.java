@@ -12,6 +12,8 @@ public class TrajetRequestDto {
     private UUID vehiculeId;
     private UUID chauffeurId;           // publicId de l'utilisateur (rôle CHAUFFEUR)
     private UUID agenceId;
+    private UUID agenceDepartId;
+    private UUID agenceArriveeId;
     private Double distance;
     private String dureeEstimee;
     private Double tarif;
@@ -32,8 +34,14 @@ public class TrajetRequestDto {
     public UUID getChauffeurId() { return chauffeurId; }
     public void setChauffeurId(UUID chauffeurId) { this.chauffeurId = chauffeurId; }
 
-    public UUID getAgenceId() { return agenceId; }
+    public UUID getAgenceId() { return agenceDepartId != null ? agenceDepartId : agenceId; }
     public void setAgenceId(UUID agenceId) { this.agenceId = agenceId; }
+
+    public UUID getAgenceDepartId() { return agenceDepartId != null ? agenceDepartId : agenceId; }
+    public void setAgenceDepartId(UUID agenceDepartId) { this.agenceDepartId = agenceDepartId; }
+
+    public UUID getAgenceArriveeId() { return agenceArriveeId; }
+    public void setAgenceArriveeId(UUID agenceArriveeId) { this.agenceArriveeId = agenceArriveeId; }
 
     public Double getDistance() { return distance; }
     public void setDistance(Double distance) { this.distance = distance; }

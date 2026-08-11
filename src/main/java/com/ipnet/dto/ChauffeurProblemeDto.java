@@ -6,7 +6,11 @@ public class ChauffeurProblemeDto {
 
     private UUID id;
     private UUID trajetId;
-    private Long chauffeurId;
+
+    // Il s'agit du publicId UUID du chauffeur,
+    // et non de son identifiant numérique interne.
+    private UUID chauffeurId;
+
     private String typeProbleme;
     private String description;
     private String statut;
@@ -33,11 +37,11 @@ public class ChauffeurProblemeDto {
         this.trajetId = trajetId;
     }
 
-    public Long getChauffeurId() {
+    public UUID getChauffeurId() {
         return chauffeurId;
     }
 
-    public void setChauffeurId(Long chauffeurId) {
+    public void setChauffeurId(UUID chauffeurId) {
         this.chauffeurId = chauffeurId;
     }
 
