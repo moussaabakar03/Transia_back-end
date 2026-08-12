@@ -862,6 +862,7 @@ public class AssistantToolExecutor {
     private boolean isUpcomingTrip(TrajetResponseDto trip) {
         return trip.getStatut() != StatutTrajet.ANNULE &&
                 trip.getStatut() != StatutTrajet.TERMINE &&
+                trip.getStatut() != StatutTrajet.EXPIRE &&
                 !tripDateTime(trip).isBefore(LocalDateTime.now(LOME_ZONE));
     }
 

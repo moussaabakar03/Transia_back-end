@@ -45,7 +45,7 @@ public class TrajetEntity extends BaseEntity {
     private LocalTime heureDepart;
 
     @Enumerated(EnumType.STRING)
-    @Column(name="Statut")
+    @Column(name="Statut", length=50)
     private StatutTrajet statut;
 
     @ManyToOne
@@ -60,6 +60,14 @@ public class TrajetEntity extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "agence_id")
     private AgenceEntity agence;
+
+    @ManyToOne
+    @JoinColumn(name = "agence_depart_id")
+    private AgenceEntity agenceDepart;
+
+    @ManyToOne
+    @JoinColumn(name = "agence_arrivee_id")
+    private AgenceEntity agenceArrivee;
 
     // Constructeur vide
     public TrajetEntity() {
@@ -117,6 +125,22 @@ public class TrajetEntity extends BaseEntity {
     public User getChauffeur() { return chauffeur; }
     public void setChauffeur(User chauffeur) { this.chauffeur = chauffeur; }
 
-    public AgenceEntity getAgence() { return agence; }
-    public void setAgence(AgenceEntity agence) { this.agence = agence; }
+    public AgenceEntity getAgence() {
+        return agenceDepart != null ? agenceDepart : agence;
+    }
+    public void setAgence(AgenceEntity agence) {
+        this.agence = agence;
+        if (this.agenceDepart == null) {
+            this.agenceDepart = agence;
+        }
+    }
+
+    public AgenceEntity getAgenceDepart() { return agenceDepart; }
+    public void setAgenceDepart(AgenceEntity agenceDepart) {
+        this.agenceDepart = agenceDepart;
+        this.agence = agenceDepart;
+    }
+
+    public AgenceEntity getAgenceArrivee() { return agenceArrivee; }
+    public void setAgenceArrivee(AgenceEntity agenceArrivee) { this.agenceArrivee = agenceArrivee; }
 }

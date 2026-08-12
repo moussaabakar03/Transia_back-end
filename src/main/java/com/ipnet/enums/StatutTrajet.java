@@ -4,5 +4,6 @@ public enum StatutTrajet {
     PROGRAMME,
     EN_COURS,
     TERMINE,
-    ANNULE
+    ANNULE,
+    EXPIRE
 }

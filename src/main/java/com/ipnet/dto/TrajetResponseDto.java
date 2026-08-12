@@ -15,6 +15,8 @@ public class TrajetResponseDto {
     private String chauffeurNom;
     private UUID agenceId;
     private String agenceNom;
+    private AgenceDto agenceDepart;
+    private AgenceDto agenceArrivee;
     private Double distance;
     private String dureeEstimee;
     private Double tarif;
@@ -41,11 +43,35 @@ public class TrajetResponseDto {
     public String getChauffeurNom() { return chauffeurNom; }
     public void setChauffeurNom(String chauffeurNom) { this.chauffeurNom = chauffeurNom; }
 
-    public UUID getAgenceId() { return agenceId; }
+    public UUID getAgenceId() {
+        return agenceDepart != null ? agenceDepart.getId() : agenceId;
+    }
     public void setAgenceId(UUID agenceId) { this.agenceId = agenceId; }
 
-    public String getAgenceNom() { return agenceNom; }
+    public String getAgenceNom() {
+        return agenceDepart != null ? agenceDepart.getNom() : agenceNom;
+    }
     public void setAgenceNom(String agenceNom) { this.agenceNom = agenceNom; }
+
+    public AgenceDto getAgenceDepart() { return agenceDepart; }
+    public void setAgenceDepart(AgenceDto agenceDepart) {
+        this.agenceDepart = agenceDepart;
+        if (agenceDepart != null) {
+            this.agenceId = agenceDepart.getId();
+            this.agenceNom = agenceDepart.getNom();
+        }
+    }
+
+    public AgenceDto getAgenceArrivee() { return agenceArrivee; }
+    public void setAgenceArrivee(AgenceDto agenceArrivee) { this.agenceArrivee = agenceArrivee; }
+
+    public UUID getAgenceDepartId() { return agenceDepart != null ? agenceDepart.getId() : agenceId; }
+    public String getAgenceDepartNom() { return agenceDepart != null ? agenceDepart.getNom() : agenceNom; }
+    public String getAgenceDepartAdresse() { return agenceDepart != null ? agenceDepart.getAdresse() : null; }
+
+    public UUID getAgenceArriveeId() { return agenceArrivee != null ? agenceArrivee.getId() : null; }
+    public String getAgenceArriveeNom() { return agenceArrivee != null ? agenceArrivee.getNom() : null; }
+    public String getAgenceArriveeAdresse() { return agenceArrivee != null ? agenceArrivee.getAdresse() : null; }
 
     public Double getDistance() { return distance; }
     public void setDistance(Double distance) { this.distance = distance; }
