@@ -12,6 +12,8 @@ import com.ipnet.enums.TranchePoids;
 public class ColisDto {
     private UUID id;
     private String numeroSuivi;
+    private String codeRetrait;
+    private String lienSuivi;
     private String description;
     private TranchePoids tranchePoids;
     private Double poidsReel;
@@ -35,6 +37,7 @@ public class ColisDto {
     private UUID agenceArriveeId;
     private String agenceArriveeNom;
     private UUID trajetId;
+    private String trajetInfo;
     private UUID agentEnregistreurId;
     private String agentEnregistreurNom;
     private UUID livreurId;
@@ -47,6 +50,12 @@ public class ColisDto {
 
     public String getNumeroSuivi() { return numeroSuivi; }
     public void setNumeroSuivi(String numeroSuivi) { this.numeroSuivi = numeroSuivi; }
+
+    public String getCodeRetrait() { return codeRetrait; }
+    public void setCodeRetrait(String codeRetrait) { this.codeRetrait = codeRetrait; }
+
+    public String getLienSuivi() { return lienSuivi; }
+    public void setLienSuivi(String lienSuivi) { this.lienSuivi = lienSuivi; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
@@ -116,6 +125,9 @@ public class ColisDto {
 
     public UUID getTrajetId() { return trajetId; }
     public void setTrajetId(UUID trajetId) { this.trajetId = trajetId; }
+
+    public String getTrajetInfo() { return trajetInfo; }
+    public void setTrajetInfo(String trajetInfo) { this.trajetInfo = trajetInfo; }
 
     public UUID getAgentEnregistreurId() { return agentEnregistreurId; }
     public void setAgentEnregistreurId(UUID agentEnregistreurId) { this.agentEnregistreurId = agentEnregistreurId; }

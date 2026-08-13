@@ -92,8 +92,14 @@ public class ColisServiceImpl implements ColisServiceInterface {
 
         User agent = SecurityUtils.getConnectedUser(userRepository);
 
+        String numero = generateNumeroSuivi();
+        String codeOTP = String.format("%06d", ThreadLocalRandom.current().nextInt(100000, 999999));
+        String lienPublic = "http://localhost:4200/suivi/" + numero;
+
         Colis colis = new Colis();
-        colis.setNumeroSuivi(generateNumeroSuivi());
+        colis.setNumeroSuivi(numero);
+        colis.setCodeRetrait(codeOTP);
+        colis.setLienSuivi(lienPublic);
         colis.setDescription(dto.getDescription());
         colis.setTranchePoids(dto.getTranchePoids());
         colis.setDimensions(dto.getDimensions());
@@ -106,13 +112,21 @@ public class ColisServiceImpl implements ColisServiceInterface {
         colis.setAgenceDepart(agenceDepart);
         colis.setAgenceArrivee(agenceArrivee);
         colis.setAgentEnregistreur(agent);
-        colis.setQrCode(UUID.randomUUID().toString());
+        colis.setQrCode(lienPublic);
         colis.setPrixEstime(estimation.getTotalEstime());
         colis.setFraisCollecte(estimation.getFraisCollecte());
         colis.setFraisLivraison(estimation.getFraisLivraison());
 
         Colis saved = colisRepository.save(colis);
-        addHistorique(saved, null, StatutColis.EN_ATTENTE_DEPOT, agent, "Enregistrement du colis");
+        addHistorique(saved, null, StatutColis.EN_ATTENTE_DEPOT, agent, "Enregistrement initial du colis");
+
+        // Notification SMS/WhatsApp avec code de retrait et lien de suivi
+        String agenceNom = saved.getAgenceDepart() != null ? saved.getAgenceDepart().getNom() : "TransIA";
+        String msgExp = "Votre colis " + saved.getNumeroSuivi() + " a été enregistré (Agence " + agenceNom + ").\nSuivez votre colis en direct : " + saved.getLienSuivi();
+        notifierParTelephone(saved.getExpediteurTelephone(), "Colis enregistré", msgExp);
+
+        String msgDest = "Un colis vous est destiné. Référence : " + saved.getNumeroSuivi() + ".\nCode secret de retrait : " + saved.getCodeRetrait() + ".\nSuivez votre colis en direct : " + saved.getLienSuivi();
+        notifierParTelephone(saved.getDestinataireTelephone(), "Nouveau colis destiné", msgDest);
 
         return colisMapper.toDto(saved);
     }
@@ -145,6 +159,14 @@ public class ColisServiceImpl implements ColisServiceInterface {
         addHistorique(saved, StatutColis.EN_ATTENTE_DEPOT, StatutColis.DEPOSE_EN_AGENCE, agent,
                 "Pesée confirmée (" + poidsReel + " kg) et prix ajusté");
 
+        // Étape 2 — Notifications automatiques par SMS / WhatsApp
+        String agenceNom = saved.getAgenceDepart() != null ? saved.getAgenceDepart().getNom() : "TransIA";
+        String msgExp = "Votre colis " + saved.getNumeroSuivi() + " a été enregistré à l'agence " + agenceNom + ".\nSuivez son état en temps réel : " + saved.getLienSuivi();
+        notifierParTelephone(saved.getExpediteurTelephone(), "Colis enregistré", msgExp);
+
+        String msgDest = "Un colis vous est destiné. Référence : " + saved.getNumeroSuivi() + ".\nCode de retrait : " + saved.getCodeRetrait() + ".\nSuivez l'état de votre colis : " + saved.getLienSuivi();
+        notifierParTelephone(saved.getDestinataireTelephone(), "Nouveau colis destiné", msgDest);
+
         return colisMapper.toDto(saved);
     }
 
@@ -165,6 +187,13 @@ public class ColisServiceImpl implements ColisServiceInterface {
         addHistorique(saved, StatutColis.DEPOSE_EN_AGENCE, StatutColis.EN_TRANSIT, agent,
                 "Chargement dans le trajet");
 
+        // Notification SMS / WhatsApp automatique lors du chargement dans le trajet
+        String dep = trajet.getVilleDepart() != null ? trajet.getVilleDepart().getNomVille() : "Départ";
+        String arr = trajet.getVilleArrivee() != null ? trajet.getVilleArrivee().getNomVille() : "Destination";
+        String msgTransit = "Votre colis " + saved.getNumeroSuivi() + " a été chargé dans le car (" + dep + " → " + arr + ").\nSuivez l'acheminement en direct : " + saved.getLienSuivi();
+        notifierParTelephone(saved.getExpediteurTelephone(), "Colis en transit", msgTransit);
+        notifierParTelephone(saved.getDestinataireTelephone(), "Colis en transit", msgTransit);
+
         return colisMapper.toDto(saved);
     }
 
@@ -181,9 +210,10 @@ public class ColisServiceImpl implements ColisServiceInterface {
         addHistorique(saved, StatutColis.EN_TRANSIT, StatutColis.ARRIVE_EN_AGENCE, agent,
                 "Réception à l'agence d'arrivée");
 
-        notifierParTelephone(saved.getDestinataireTelephone(), "Colis arrivé",
-                "Votre colis " + saved.getNumeroSuivi()
-                        + " est arrivé à l'agence. Venez le récupérer ou attendez la livraison.");
+        String agenceArriveeNom = saved.getAgenceArrivee() != null ? saved.getAgenceArrivee().getNom() : "TransIA";
+        String msgArrivee = "Votre colis " + saved.getNumeroSuivi() + " est arrivé à l'agence " + agenceArriveeNom + ".\nVenez le retirer avec votre code : " + saved.getCodeRetrait() + "\nou consultez : " + saved.getLienSuivi();
+        notifierParTelephone(saved.getExpediteurTelephone(), "Colis arrivé en agence", msgArrivee);
+        notifierParTelephone(saved.getDestinataireTelephone(), "Colis disponible en agence", msgArrivee);
 
         return colisMapper.toDto(saved);
     }
@@ -204,21 +234,27 @@ public class ColisServiceImpl implements ColisServiceInterface {
         addHistorique(saved, StatutColis.ARRIVE_EN_AGENCE, StatutColis.EN_COURS_LIVRAISON, livreur,
                 "Départ en livraison");
 
-        notifierParTelephone(saved.getDestinataireTelephone(), "Colis en livraison",
-                "Votre colis " + saved.getNumeroSuivi() + " est en cours de livraison vers votre adresse.");
+        String msgLivraisonEnCours = "Votre colis " + saved.getNumeroSuivi() + " est en cours de livraison vers votre adresse. Code de remise : " + saved.getCodeRetrait();
+        notifierParTelephone(saved.getDestinataireTelephone(), "Colis en livraison", msgLivraisonEnCours);
 
         return colisMapper.toDto(saved);
     }
 
     @Override
     @Transactional
-    public ColisDto confirmerLivraison(UUID colisId) {
+    public ColisDto confirmerLivraison(UUID colisId, String codeOtp) {
         Colis colis = getColis(colisId);
 
         if (colis.getStatut() != StatutColis.EN_COURS_LIVRAISON
                 && colis.getStatut() != StatutColis.ARRIVE_EN_AGENCE) {
             throw new ColisTransitionInvalideException(
                     "Le colis doit être en cours de livraison ou arrivé en agence pour être marqué livré");
+        }
+
+        if (codeOtp != null && !codeOtp.trim().isEmpty()) {
+            if (colis.getCodeRetrait() != null && !colis.getCodeRetrait().trim().equalsIgnoreCase(codeOtp.trim())) {
+                throw new IllegalArgumentException("Code secret de retrait OTP incorrect. Remise non autorisée.");
+            }
         }
 
         StatutColis ancien = colis.getStatut();
@@ -229,9 +265,10 @@ public class ColisServiceImpl implements ColisServiceInterface {
         Colis saved = colisRepository.save(colis);
         addHistorique(saved, ancien, StatutColis.LIVRE, agent, "Livraison confirmée");
 
-        String message = "Le colis " + saved.getNumeroSuivi() + " a été livré avec succès.";
-        notifierParTelephone(saved.getExpediteurTelephone(), "Colis livré", message);
-        notifierParTelephone(saved.getDestinataireTelephone(), "Colis livré", message);
+        String msgExp = "Votre colis " + saved.getNumeroSuivi() + " a été livré avec succès par le destinataire.";
+        String msgDest = "Vous avez bien reçu le colis " + saved.getNumeroSuivi() + ". Merci d'utiliser TransIA.";
+        notifierParTelephone(saved.getExpediteurTelephone(), "Colis livré", msgExp);
+        notifierParTelephone(saved.getDestinataireTelephone(), "Colis livré", msgDest);
 
         return colisMapper.toDto(saved);
     }
@@ -265,6 +302,14 @@ public class ColisServiceImpl implements ColisServiceInterface {
     @Override
     public List<ColisDto> listerColisParStatut(StatutColis statut) {
         return colisMapper.toDtoList(colisRepository.findByStatut(statut));
+    }
+
+    @Override
+    public List<ColisDto> listerColisParTrajet(UUID trajetId) {
+        if (trajetId == null) {
+            return List.of();
+        }
+        return colisMapper.toDtoList(colisRepository.findByTrajetId(trajetId));
     }
 
     @Override
@@ -340,6 +385,15 @@ public class ColisServiceImpl implements ColisServiceInterface {
         if (telephone == null || telephone.isBlank()) {
             return;
         }
+
+        // Trace visuelle dans la console Backend Spring Boot pour la démonstration SMS / WhatsApp
+        System.out.println("\n--------------------------------------------------------------------------------");
+        System.out.println("📱 [SIMULATION ENVOI SMS / WHATSAPP]");
+        System.out.println("   DESTINATAIRE : " + telephone);
+        System.out.println("   SUJET        : " + titre);
+        System.out.println("   CONTENU      : \n" + message);
+        System.out.println("--------------------------------------------------------------------------------\n");
+
         userRepository.findByTelephone(telephone)
                 .ifPresent(user -> notificationService.envoyerNotification(user.getId(), titre, message));
     }

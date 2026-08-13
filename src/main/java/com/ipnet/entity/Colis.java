@@ -37,6 +37,12 @@ public class Colis extends BaseEntity {
     @Column(unique = true, nullable = false)
     private String numeroSuivi;
 
+    @Column
+    private String codeRetrait;
+
+    @Column
+    private String lienSuivi;
+
     @Column(nullable = false)
     private String description;
 
@@ -136,6 +142,12 @@ public class Colis extends BaseEntity {
 
     public String getNumeroSuivi() { return numeroSuivi; }
     public void setNumeroSuivi(String numeroSuivi) { this.numeroSuivi = numeroSuivi; }
+
+    public String getCodeRetrait() { return codeRetrait; }
+    public void setCodeRetrait(String codeRetrait) { this.codeRetrait = codeRetrait; }
+
+    public String getLienSuivi() { return lienSuivi; }
+    public void setLienSuivi(String lienSuivi) { this.lienSuivi = lienSuivi; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
