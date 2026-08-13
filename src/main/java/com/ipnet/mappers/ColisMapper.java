@@ -44,6 +44,9 @@ public class ColisMapper {
         dto.setDestinataireNom(entity.getDestinataireNom());
         dto.setDestinataireTelephone(entity.getDestinataireTelephone());
         dto.setDestinataireAdresse(entity.getDestinataireAdresse());
+        dto.setAdresseCollecte(entity.getAdresseCollecte());
+        dto.setLatitudeCollecte(entity.getLatitudeCollecte());
+        dto.setLongitudeCollecte(entity.getLongitudeCollecte());
         dto.setPrixEstime(entity.getPrixEstime());
         dto.setPrixFinal(entity.getPrixFinal());
         dto.setFraisCollecte(entity.getFraisCollecte());

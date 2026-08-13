@@ -43,6 +43,9 @@ public class ColisDto {
     private UUID livreurId;
     private String livreurNom;
     private String qrCode;
+    private String adresseCollecte;
+    private Double latitudeCollecte;
+    private Double longitudeCollecte;
     private List<HistoriqueColisDto> historique;
 
     public UUID getId() { return id; }
@@ -143,6 +146,15 @@ public class ColisDto {
 
     public String getQrCode() { return qrCode; }
     public void setQrCode(String qrCode) { this.qrCode = qrCode; }
+
+    public String getAdresseCollecte() { return adresseCollecte; }
+    public void setAdresseCollecte(String adresseCollecte) { this.adresseCollecte = adresseCollecte; }
+
+    public Double getLatitudeCollecte() { return latitudeCollecte; }
+    public void setLatitudeCollecte(Double latitudeCollecte) { this.latitudeCollecte = latitudeCollecte; }
+
+    public Double getLongitudeCollecte() { return longitudeCollecte; }
+    public void setLongitudeCollecte(Double longitudeCollecte) { this.longitudeCollecte = longitudeCollecte; }
 
     public List<HistoriqueColisDto> getHistorique() { return historique; }
     public void setHistorique(List<HistoriqueColisDto> historique) { this.historique = historique; }

@@ -74,6 +74,15 @@ public class Colis extends BaseEntity {
     @Column(nullable = false)
     private String expediteurTelephone;
 
+    @Column
+    private String adresseCollecte;
+
+    @Column
+    private Double latitudeCollecte;
+
+    @Column
+    private Double longitudeCollecte;
+
     @Column(nullable = false)
     private String destinataireNom;
 
@@ -220,6 +229,15 @@ public class Colis extends BaseEntity {
 
     public String getQrCode() { return qrCode; }
     public void setQrCode(String qrCode) { this.qrCode = qrCode; }
+
+    public String getAdresseCollecte() { return adresseCollecte; }
+    public void setAdresseCollecte(String adresseCollecte) { this.adresseCollecte = adresseCollecte; }
+
+    public Double getLatitudeCollecte() { return latitudeCollecte; }
+    public void setLatitudeCollecte(Double latitudeCollecte) { this.latitudeCollecte = latitudeCollecte; }
+
+    public Double getLongitudeCollecte() { return longitudeCollecte; }
+    public void setLongitudeCollecte(Double longitudeCollecte) { this.longitudeCollecte = longitudeCollecte; }
 
     public List<HistoriqueColis> getHistorique() { return historique; }
     public void setHistorique(List<HistoriqueColis> historique) { this.historique = historique; }
