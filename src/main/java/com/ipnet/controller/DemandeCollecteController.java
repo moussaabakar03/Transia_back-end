@@ -39,7 +39,7 @@ public class DemandeCollecteController {
     @PutMapping("/{id}/collecter")
     @PreAuthorize("hasRole('LIVREUR')")
     public ResponseEntity<DemandeCollecteDto> collecterColis(
-            @PathVariable UUID id, @RequestParam UUID colisId) {
+            @PathVariable UUID id, @RequestParam(required = false) UUID colisId) {
         return ResponseEntity.ok(demandeService.collecterColis(id, colisId));
     }
 

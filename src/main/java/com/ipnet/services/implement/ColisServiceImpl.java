@@ -125,8 +125,13 @@ public class ColisServiceImpl implements ColisServiceInterface {
         colis.setFraisCollecte(estimation.getFraisCollecte());
         colis.setFraisLivraison(estimation.getFraisLivraison());
 
+        StatutColis initialStatut = dto.isCollecteDomicile()
+                ? StatutColis.EN_ATTENTE_COLLECTE
+                : StatutColis.EN_ATTENTE_DEPOT;
+        colis.setStatut(initialStatut);
+
         Colis saved = colisRepository.save(colis);
-        addHistorique(saved, null, StatutColis.EN_ATTENTE_DEPOT, agent, "Enregistrement initial du colis");
+        addHistorique(saved, null, initialStatut, agent, "Enregistrement initial du colis");
 
         if (dto.isCollecteDomicile()) {
             DemandeCollecteEntity demande = new DemandeCollecteEntity();

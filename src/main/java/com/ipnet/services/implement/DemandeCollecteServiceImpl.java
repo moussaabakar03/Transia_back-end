@@ -99,10 +99,17 @@ public class DemandeCollecteServiceImpl implements DemandeCollecteServiceInterfa
             throw new AccessDeniedException("Cette demande n'est pas assignée à ce livreur");
         }
 
-        Colis colis = colisRepository.findById(colisId)
-                .orElseThrow(() -> new ResourceNotFoundException("Colis introuvable"));
+        if (colisId != null) {
+            Colis colis = colisRepository.findById(colisId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Colis introuvable"));
+            demande.setColis(colis);
+        }
 
-        demande.setColis(colis);
+        if (demande.getColis() != null) {
+            demande.getColis().setStatut(com.ipnet.enums.StatutColis.DEPOSE_EN_AGENCE);
+            colisRepository.save(demande.getColis());
+        }
+
         demande.setStatut(StatutCollecte.COLLECTE);
 
         return demandeMapper.toDto(demandeRepository.save(demande));
