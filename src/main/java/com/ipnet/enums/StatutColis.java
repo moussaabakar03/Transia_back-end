@@ -6,6 +6,7 @@ public enum StatutColis {
     DEPOSE_EN_AGENCE,
     EN_TRANSIT,
     ARRIVE_EN_AGENCE,
+    AFFECTE_AU_LIVREUR,
     EN_COURS_LIVRAISON,
     LIVRE,
     RETOURNE,

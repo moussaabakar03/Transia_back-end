@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.servers.Server;
+
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,44 +26,61 @@ import org.springframework.web.ErrorResponse;
                         email = "transia@gmail.com"
                 ),
                 title = "Back-end TransIA",
-                description = "",
+                description = "API REST de la plateforme TransIA",
                 version = "1.0",
                 license = @License(
-                        name = "Licence name",
-                        url = ""
+                        name = "Licence TransIA"
                 ),
                 termsOfService = "Terms of service"
         ),
+
         servers = {
                 @Server(
-                        description = "Development",
-                        url = "http://localhost:8181"
+                        description = "Production - Render",
+                        url = "https://transia-back-end.onrender.com"
                 ),
                 @Server(
-                        description = "PROD ENV",
-                        url = ""
+                        description = "Development - Local",
+                        url = "http://localhost:8181"
                 )
         },
+
         security = {
                 @SecurityRequirement(
                         name = "bearerAuth"
                 )
         }
 )
+
 @SecurityScheme(
         name = "bearerAuth",
-        description = "JWT auth description",
+        description = "Authentification JWT TransIA",
         scheme = "bearer",
         type = SecuritySchemeType.HTTP,
         bearerFormat = "JWT",
         in = SecuritySchemeIn.HEADER
 )
+
 public class OpenAPIConfig {
+
     @Bean
     public OpenApiCustomizer schemaCustomizer() {
-        ResolvedSchema resolvedSchema = ModelConverters.getInstance()
-                .resolveAsResolvedSchema(new AnnotatedType(ErrorResponse.class));
-        return openApi -> openApi
-                .schema(resolvedSchema.schema.getName(), resolvedSchema.schema);
+
+        ResolvedSchema resolvedSchema = ModelConverters
+                .getInstance()
+                .resolveAsResolvedSchema(
+                        new AnnotatedType(ErrorResponse.class)
+                );
+
+        return openApi -> {
+            if (resolvedSchema.schema != null
+                    && resolvedSchema.schema.getName() != null) {
+
+                openApi.schema(
+                        resolvedSchema.schema.getName(),
+                        resolvedSchema.schema
+                );
+            }
+        };
     }
 }
