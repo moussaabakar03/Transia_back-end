@@ -25,7 +25,7 @@ public interface TourneeRepository extends JpaRepository<Tournee, UUID> {
 
     @Query("SELECT t FROM Tournee t WHERE " +
            "(:date IS NULL OR t.dateTournee = :date) AND " +
-           "(:livreurId IS NULL OR t.livreur.id = :livreurId) AND " +
+           "(:livreurId IS NULL OR t.livreur.publicId = :livreurId) AND " +
            "(:zone IS NULL OR LOWER(t.zone) LIKE LOWER(CONCAT('%', :zone, '%')))")
     List<Tournee> findByFilters(
             @Param("date") LocalDate date,

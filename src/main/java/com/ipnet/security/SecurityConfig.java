@@ -84,6 +84,7 @@ public class SecurityConfig {
                                 "/api/v1/register",
                                 "/api/v1/forgot-password",
                                 "/api/v1/reset-password",
+                                "/api/v1/colis/suivi/**",
                                 "/error",
                                 "/csrf",
                                 "/resources/**",

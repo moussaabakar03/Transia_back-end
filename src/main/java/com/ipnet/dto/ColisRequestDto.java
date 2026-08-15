@@ -18,6 +18,9 @@ public class ColisRequestDto {
     private UUID agenceDepartId;
     private UUID agenceArriveeId;
     private boolean collecteDomicile;
+    private String adresseCollecte;
+    private Double latitudeCollecte;
+    private Double longitudeCollecte;
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
@@ -54,4 +57,13 @@ public class ColisRequestDto {
 
     public boolean isCollecteDomicile() { return collecteDomicile; }
     public void setCollecteDomicile(boolean collecteDomicile) { this.collecteDomicile = collecteDomicile; }
+
+    public String getAdresseCollecte() { return adresseCollecte; }
+    public void setAdresseCollecte(String adresseCollecte) { this.adresseCollecte = adresseCollecte; }
+
+    public Double getLatitudeCollecte() { return latitudeCollecte; }
+    public void setLatitudeCollecte(Double latitudeCollecte) { this.latitudeCollecte = latitudeCollecte; }
+
+    public Double getLongitudeCollecte() { return longitudeCollecte; }
+    public void setLongitudeCollecte(Double longitudeCollecte) { this.longitudeCollecte = longitudeCollecte; }
 }

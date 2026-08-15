@@ -15,12 +15,12 @@ public interface ColisServiceInterface {
     ColisDto confirmerPeseeAjusterPrix(UUID colisId, Double poidsReel, TranchePoids trancheReelle);
     ColisDto chargerColisInTrajet(UUID colisId, UUID trajetId);
     ColisDto receptionnerColis(UUID colisId);
-    ColisDto affecterLivreur(UUID colisId, UUID livreurId);
-    ColisDto demarrerLivraison(UUID colisId);
-    ColisDto confirmerLivraison(UUID colisId);
+    ColisDto demarrerLivraison(UUID colisId, UUID livreurId);
+    ColisDto confirmerLivraison(UUID colisId, String codeOtp);
     ColisStatutDto getStatutColis(String numeroSuivi);
     List<ColisDto> listerColisParAgence(UUID agenceId);
     List<ColisDto> listerColisParStatut(StatutColis statut);
+    List<ColisDto> listerColisParTrajet(UUID trajetId);
 
     // Absent de la spec initiale (endpoints listés = agent/admin uniquement) mais nécessaire :
     // sans ça, le client mobile n'a aucun moyen de lister les colis qu'il a lui-même envoyés.

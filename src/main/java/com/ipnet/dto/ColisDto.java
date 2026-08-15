@@ -12,6 +12,8 @@ import com.ipnet.enums.TranchePoids;
 public class ColisDto {
     private UUID id;
     private String numeroSuivi;
+    private String codeRetrait;
+    private String lienSuivi;
     private String description;
     private TranchePoids tranchePoids;
     private Double poidsReel;
@@ -35,11 +37,15 @@ public class ColisDto {
     private UUID agenceArriveeId;
     private String agenceArriveeNom;
     private UUID trajetId;
+    private String trajetInfo;
     private UUID agentEnregistreurId;
     private String agentEnregistreurNom;
     private UUID livreurId;
     private String livreurNom;
     private String qrCode;
+    private String adresseCollecte;
+    private Double latitudeCollecte;
+    private Double longitudeCollecte;
     private List<HistoriqueColisDto> historique;
 
     public UUID getId() { return id; }
@@ -47,6 +53,12 @@ public class ColisDto {
 
     public String getNumeroSuivi() { return numeroSuivi; }
     public void setNumeroSuivi(String numeroSuivi) { this.numeroSuivi = numeroSuivi; }
+
+    public String getCodeRetrait() { return codeRetrait; }
+    public void setCodeRetrait(String codeRetrait) { this.codeRetrait = codeRetrait; }
+
+    public String getLienSuivi() { return lienSuivi; }
+    public void setLienSuivi(String lienSuivi) { this.lienSuivi = lienSuivi; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
@@ -117,6 +129,9 @@ public class ColisDto {
     public UUID getTrajetId() { return trajetId; }
     public void setTrajetId(UUID trajetId) { this.trajetId = trajetId; }
 
+    public String getTrajetInfo() { return trajetInfo; }
+    public void setTrajetInfo(String trajetInfo) { this.trajetInfo = trajetInfo; }
+
     public UUID getAgentEnregistreurId() { return agentEnregistreurId; }
     public void setAgentEnregistreurId(UUID agentEnregistreurId) { this.agentEnregistreurId = agentEnregistreurId; }
 
@@ -131,6 +146,15 @@ public class ColisDto {
 
     public String getQrCode() { return qrCode; }
     public void setQrCode(String qrCode) { this.qrCode = qrCode; }
+
+    public String getAdresseCollecte() { return adresseCollecte; }
+    public void setAdresseCollecte(String adresseCollecte) { this.adresseCollecte = adresseCollecte; }
+
+    public Double getLatitudeCollecte() { return latitudeCollecte; }
+    public void setLatitudeCollecte(Double latitudeCollecte) { this.latitudeCollecte = latitudeCollecte; }
+
+    public Double getLongitudeCollecte() { return longitudeCollecte; }
+    public void setLongitudeCollecte(Double longitudeCollecte) { this.longitudeCollecte = longitudeCollecte; }
 
     public List<HistoriqueColisDto> getHistorique() { return historique; }
     public void setHistorique(List<HistoriqueColisDto> historique) { this.historique = historique; }

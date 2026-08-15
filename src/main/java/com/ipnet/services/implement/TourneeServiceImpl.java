@@ -126,6 +126,11 @@ public class TourneeServiceImpl implements TourneeServiceInterface {
         }
 
         demande.setTournee(tournee);
+        demande.setLivreur(tournee.getLivreur());
+        demande.setStatut(com.ipnet.enums.StatutCollecte.EN_COURS);
+        if (demande.getColis() != null) {
+            demande.getColis().setLivreur(tournee.getLivreur());
+        }
         demandeRepository.save(demande);
 
         return tourneeMapper.toDto(tourneeRepository.findById(tourneeId).orElse(tournee));
@@ -145,6 +150,11 @@ public class TourneeServiceImpl implements TourneeServiceInterface {
         }
 
         demande.setTournee(null);
+        demande.setLivreur(null);
+        demande.setStatut(com.ipnet.enums.StatutCollecte.EN_ATTENTE);
+        if (demande.getColis() != null) {
+            demande.getColis().setLivreur(null);
+        }
         demandeRepository.save(demande);
 
         return tourneeMapper.toDto(tourneeRepository.findById(tourneeId).orElse(tournee));

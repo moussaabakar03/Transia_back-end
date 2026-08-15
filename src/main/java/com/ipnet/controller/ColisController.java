@@ -64,7 +64,7 @@ public class ColisController {
     }
 
     @PutMapping("/{id}/charger")
-    @PreAuthorize("hasAnyRole('AGENT_ACCUEIL','ADMIN_AGENCE','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('AGENT_ACCUEIL','ADMIN_AGENCE','SUPER_ADMIN','CHAUFFEUR')")
     public ResponseEntity<ColisDto> chargerColisInTrajet(
             @PathVariable UUID id,
             @RequestParam UUID trajetId) {
@@ -74,12 +74,9 @@ public class ColisController {
     }
 
     @PutMapping("/{id}/receptionner")
-    @PreAuthorize("hasAnyRole('AGENT_ACCUEIL','ADMIN_AGENCE','SUPER_ADMIN')")
-    public ResponseEntity<ColisDto> receptionnerColis(
-            @PathVariable UUID id) {
-        return ResponseEntity.ok(
-                colisService.receptionnerColis(id)
-        );
+    @PreAuthorize("hasAnyRole('AGENT_ACCUEIL','ADMIN_AGENCE','SUPER_ADMIN','CHAUFFEUR')")
+    public ResponseEntity<ColisDto> receptionnerColis(@PathVariable UUID id) {
+        return ResponseEntity.ok(colisService.receptionnerColis(id));
     }
 
     /**
@@ -100,7 +97,7 @@ public class ColisController {
      * Le livreur connecté démarre une livraison qui lui a déjà été affectée.
      */
     @PutMapping("/{id}/demarrer-livraison")
-    @PreAuthorize("hasRole('LIVREUR')")
+    @PreAuthorize("hasAnyRole('LIVREUR','AGENT_ACCUEIL','ADMIN_AGENCE','SUPER_ADMIN')")
     public ResponseEntity<ColisDto> demarrerLivraison(
             @PathVariable UUID id) {
         return ResponseEntity.ok(
@@ -109,21 +106,16 @@ public class ColisController {
     }
 
     @PutMapping("/{id}/confirmer-livraison")
-    @PreAuthorize("hasRole('LIVREUR')")
+    @PreAuthorize("hasAnyRole('LIVREUR','AGENT_ACCUEIL','ADMIN_AGENCE','SUPER_ADMIN')")
     public ResponseEntity<ColisDto> confirmerLivraison(
-            @PathVariable UUID id) {
-        return ResponseEntity.ok(
-                colisService.confirmerLivraison(id)
-        );
+            @PathVariable UUID id,
+            @RequestParam(required = false) String codeOtp) {
+        return ResponseEntity.ok(colisService.confirmerLivraison(id, codeOtp));
     }
 
     @GetMapping("/suivi/{numeroSuivi}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ColisStatutDto> getStatutColis(
-            @PathVariable String numeroSuivi) {
-        return ResponseEntity.ok(
-                colisService.getStatutColis(numeroSuivi)
-        );
+    public ResponseEntity<ColisStatutDto> getStatutColis(@PathVariable String numeroSuivi) {
+        return ResponseEntity.ok(colisService.getStatutColis(numeroSuivi));
     }
 
     @GetMapping("/mes-colis")
@@ -159,6 +151,14 @@ public class ColisController {
                 colisService.listerColisParStatut(statut)
         );
     }
+
+    @GetMapping("/trajet/{trajetId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<ColisDto>> listerColisParTrajet(@PathVariable UUID trajetId) {
+        return ResponseEntity.ok(colisService.listerColisParTrajet(trajetId));
+    }
+
+    // Conservés de l'existant, pas dans la spec mais utiles
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
