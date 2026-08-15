@@ -1,8 +1,10 @@
 package com.ipnet.mappers;
 
+import com.ipnet.dto.AgenceDto;
 import com.ipnet.dto.TrajetResponseDto;
 import com.ipnet.dto.VehiculeDto;
 import com.ipnet.dto.VilleDto;
+import com.ipnet.entity.AgenceEntity;
 import com.ipnet.entity.TrajetEntity;
 import com.ipnet.entity.VehiculeEntity;
 import com.ipnet.entity.VilleEntity;
@@ -29,9 +31,36 @@ public class TrajetMapper {
             dto.setChauffeurId(entity.getChauffeur().getPublicId());
             dto.setChauffeurNom(entity.getChauffeur().getNom());
         }
-        if (entity.getAgence() != null) {
-            dto.setAgenceId(entity.getAgence().getId());
-            dto.setAgenceNom(entity.getAgence().getNom());
+
+        AgenceEntity agenceDep = entity.getAgenceDepart() != null ? entity.getAgenceDepart() : entity.getAgence();
+        if (agenceDep != null) {
+            dto.setAgenceId(agenceDep.getId());
+            dto.setAgenceNom(agenceDep.getNom());
+            dto.setAgenceDepart(toAgenceDto(agenceDep));
+        }
+
+        if (entity.getAgenceArrivee() != null) {
+            dto.setAgenceArrivee(toAgenceDto(entity.getAgenceArrivee()));
+        }
+
+        return dto;
+    }
+
+    private AgenceDto toAgenceDto(AgenceEntity entity) {
+        if (entity == null) return null;
+        AgenceDto dto = new AgenceDto();
+        dto.setId(entity.getId());
+        dto.setNom(entity.getNom());
+        dto.setAdresse(entity.getAdresse());
+        dto.setTelephone(entity.getTelephone());
+        dto.setEmail(entity.getEmail());
+        dto.setLatitude(entity.getLatitude());
+        dto.setLongitude(entity.getLongitude());
+        dto.setStatut(entity.getStatut());
+        dto.setPhotos(entity.getPhotos());
+        if (entity.getVille() != null) {
+            dto.setVilleId(entity.getVille().getId());
+            dto.setVilleNom(entity.getVille().getNomVille());
         }
         return dto;
     }

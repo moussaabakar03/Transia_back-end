@@ -190,7 +190,7 @@ public class UserApi {
         List<UserRoleReponse> chauffeurs = villeId != null
                 ? userService.getChauffeursByVille(villeId)
                 : userService.getChauffeurs();
-        return ResponseEntity.ok(filtrerParAgenceSiNecessaire(chauffeurs));
+        return ResponseEntity.ok(chauffeurs);
     }
 
     @GetMapping("/utilisateur/livreurs")
