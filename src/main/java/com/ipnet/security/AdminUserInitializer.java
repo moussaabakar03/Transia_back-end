@@ -17,7 +17,7 @@ import java.util.UUID;
 public class AdminUserInitializer implements CommandLineRunner {
 
     private static final String ADMIN_TELEPHONE = "+261340000000";
-    private static final String ADMIN_PASSWORD = "Esso";
+    private static final String ADMIN_PASSWORD = "2468";
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -36,18 +36,25 @@ public class AdminUserInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
+        // 1. Création automatique de TOUS les rôles au démarrage du serveur s'ils n'existent pas
+        for (UserRole roleEnum : UserRole.values()) {
+            if (!roleRepository.existsByName(roleEnum)) {
+                Role role = new Role();
+                role.setName(roleEnum);
+                role.setPublicId(UUID.randomUUID());
+                roleRepository.save(role);
+                System.out.println(">>> Rôle créé automatiquement : " + roleEnum);
+            }
+        }
+
+        // 2. Création de l'Administrateur par défaut si non existant
         if (userRepository.existsByTelephone(ADMIN_TELEPHONE)) {
-            System.out.println(">>> Admin déjà existant, aucune action.");
+            System.out.println(">>> Admin déjà existant.");
             return;
         }
 
         Role superAdminRole = roleRepository.findByName(UserRole.SUPER_ADMIN)
-                .orElseGet(() -> {
-                    Role role = new Role();
-                    role.setName(UserRole.SUPER_ADMIN);
-                    role.setPublicId(UUID.randomUUID());
-                    return roleRepository.save(role);
-                });
+                .orElseThrow(() -> new RuntimeException("Rôle SUPER_ADMIN introuvable"));
 
         User admin = new User();
         admin.setNom("Administrateur");

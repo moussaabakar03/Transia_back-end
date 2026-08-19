@@ -28,8 +28,7 @@ public class BilletServiceImpl implements BilletServiceInterface {
     @Override
     @Transactional
     public BilletDto validerBillet(String qrCode) {
-        BilletEntity billet = billetRepository.findByQrCode(qrCode)
-                .orElseThrow(() -> new ResourceNotFoundException("Billet introuvable pour ce QR code"));
+        BilletEntity billet = trouverBilletEntity(qrCode);
 
         if (billet.getStatut() == StatutBillet.ANNULE) {
             throw new BilletNonValidableException("Ce billet est annulé");
@@ -45,14 +44,44 @@ public class BilletServiceImpl implements BilletServiceInterface {
         return billetMapper.toDto(billetRepository.save(billet));
     }
 
-    // Lecture seule, contrairement à validerBillet : sert au chauffeur pour comprendre pourquoi
-    // un QR scanné n'appartient pas au trajet en cours (billet d'un autre trajet, pas encore payé...)
-    // sans marquer le billet comme utilisé.
     @Override
     public BilletDto rechercherParQrCode(String qrCode) {
-        BilletEntity billet = billetRepository.findByQrCode(qrCode)
-                .orElseThrow(() -> new ResourceNotFoundException("Billet introuvable pour ce QR code"));
+        BilletEntity billet = trouverBilletEntity(qrCode);
         return billetMapper.toDto(billet);
+    }
+
+    private BilletEntity trouverBilletEntity(String qrCode) {
+        if (qrCode == null || qrCode.trim().isEmpty()) {
+            throw new ResourceNotFoundException("Billet introuvable pour ce QR code");
+        }
+        String cleanQr = qrCode.trim();
+
+        // 1. Recherche directe par qrCode enregistré
+        java.util.Optional<BilletEntity> opt = billetRepository.findByQrCode(cleanQr);
+        if (opt.isPresent()) return opt.get();
+
+        // 2. Recherche directe par ID de billet
+        try {
+            UUID id = UUID.fromString(cleanQr);
+            opt = billetRepository.findById(id);
+            if (opt.isPresent()) return opt.get();
+        } catch (Exception ignored) {}
+
+        // 3. Fallback pour chaînes composées avec RESERVATION_ID:
+        if (cleanQr.contains("RESERVATION_ID:")) {
+            try {
+                int start = cleanQr.indexOf("RESERVATION_ID:") + "RESERVATION_ID:".length();
+                int end = cleanQr.indexOf("|", start);
+                String resIdStr = (end != -1) ? cleanQr.substring(start, end) : cleanQr.substring(start);
+                UUID resId = UUID.fromString(resIdStr.trim());
+                List<BilletEntity> list = billetRepository.findByReservation_Id(resId);
+                if (!list.isEmpty()) {
+                    return list.get(0);
+                }
+            } catch (Exception ignored) {}
+        }
+
+        throw new ResourceNotFoundException("Billet introuvable pour ce QR code");
     }
 
     @Override

@@ -30,6 +30,7 @@ public class Reservation {
     private LocalDateTime expiration; 
     private int nombrePlace;
     private String nomResponsable;
+    private String reference;
 
     @Enumerated(EnumType.STRING)
     private StatutReservation statut;
@@ -163,6 +164,14 @@ public class Reservation {
 
 	public void setTypeReservation(TypeReservation typeReservation) {
 		this.typeReservation = typeReservation;
+	}
+
+	public String getReference() {
+		return reference;
+	}
+
+	public void setReference(String reference) {
+		this.reference = reference;
 	}
 
 	

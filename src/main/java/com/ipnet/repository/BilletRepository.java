@@ -18,4 +18,6 @@ public interface BilletRepository extends JpaRepository<BilletEntity, UUID> {
     java.util.Optional<BilletEntity> findByQrCode(String qrCode);
 
     List<BilletEntity> findByReservation_Trajet_Id(UUID trajetId);
+
+    List<BilletEntity> findByReservation_Id(UUID reservationId);
 }

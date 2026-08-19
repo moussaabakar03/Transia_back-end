@@ -22,6 +22,14 @@ public class ReservationResponseDto {
     private UUID userId;
     private PaiementRequestDto paiement;
     private TypeReservation typeReservation;
+    private String reference;
+
+    public String getReference() {
+        return reference;
+    }
+    public void setReference(String reference) {
+        this.reference = reference;
+    }
 
 
 	public UUID getId() {

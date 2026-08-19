@@ -93,6 +93,8 @@ public class ReservationServiceImpl implements ReservationServiceInterface {
         // Dérivé du rôle du JWT, jamais du client : un CLIENT réserve forcément en ligne, le staff
         // saisit forcément au comptoir. L'app mobile n'envoie d'ailleurs jamais ce champ.
         res.setTypeReservation(SecurityUtils.hasRole("CLIENT") ? TypeReservation.EN_LIGNE : TypeReservation.PRESENTIEL);
+        String refCode = "RES-" + String.format("%06d", (int) (Math.random() * 900000 + 100000));
+        res.setReference(refCode);
 
         Reservation savedRes = reservationRepository.save(res);
 

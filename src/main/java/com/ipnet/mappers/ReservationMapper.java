@@ -29,6 +29,12 @@ public class ReservationMapper {
         dto.setNomResponsable(entity.getNomResponsable());
         dto.setTypeReservation(entity.getTypeReservation());
 
+        if (entity.getReference() != null && !entity.getReference().isBlank()) {
+            dto.setReference(entity.getReference());
+        } else if (entity.getId() != null) {
+            dto.setReference("RES-" + entity.getId().toString().substring(0, 8).toUpperCase());
+        }
+
         if (entity.getTrajet() != null) {
             dto.setTrajetId(entity.getTrajet().getId());
             dto.setTrajet(trajetMapper.toResponse(entity.getTrajet()));

@@ -34,7 +34,7 @@ public class NotificationScheduler {
      * En production, la fréquence peut être réduite à toutes les 5 ou 10 minutes.
      */
     @Scheduled(fixedDelayString = "${transia.notifications.check-delay-ms:60000}")
-    @Transactional(readOnly = true)
+    @Transactional
     public void genererRappelsAutomatiques() {
         List<Reservation> reservations = reservationRepository.findByStatutIn(
             List.of(StatutReservation.EN_ATTENTE, StatutReservation.CONFIRMEE)
